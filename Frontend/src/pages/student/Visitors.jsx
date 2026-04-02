@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -556,17 +557,17 @@ function Visitors() {
   };
 
   useEffect(() => { fetchData(); }, []);
-
+   const { showToast } = useToast();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
       await axios.post(`${API}/visitors`, form, { headers: { Authorization: `Bearer ${token}` } });
-      alert("Visitor request submitted ✅");
+      showToast("Visitor request submitted ✅", "success");
       setForm({ roomId: "", visitorName: "", visitorNIC: "", visitorPhone: "", relation: "", purpose: "", visitDate: "", inTime: "", outTime: "" });
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || "Error");
+      showToast(err.response?.data?.message || "Error", "error");
     }
   };
 

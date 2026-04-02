@@ -2,6 +2,7 @@ import Layout from "../../components/Layout";
 import { useMemo, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -284,6 +285,7 @@ const districts = [
 
 function AddRoom() {
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const [form, setForm] = useState({
     roomNumber: "",
@@ -311,7 +313,7 @@ function AddRoom() {
   const [images, setImages] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState({ type: "", message: "" });
+ 
 
   const formattedPrice = useMemo(() => {
     if (!form.price) return "LKR 0";
@@ -368,11 +370,11 @@ function AddRoom() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus({ type: "", message: "" });
+    
 
     const error = validate();
     if (error) {
-      setStatus({ type: "error", message: error });
+      showToast(error, "error");
       return;
     }
 
@@ -410,19 +412,17 @@ function AddRoom() {
         },
       });
 
-      setStatus({ type: "success", message: "Room added successfully." });
-
+       showToast("Room added successfully.", "success");
       setTimeout(() => {
         navigate("/admin/rooms");
       }, 900);
     } catch (err) {
-      setStatus({
-        type: "error",
-        message:
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Failed to add room.",
-      });
+      showToast(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to add room.",
+        "error"                         
+      );
     } finally {
       setLoading(false);
     }
@@ -461,12 +461,7 @@ function AddRoom() {
             </button>
           </div>
         </div>
-
-        {status.message && (
-          <div className={`status-box ${status.type}`}>
-            {status.message}
-          </div>
-        )}
+         
 
         <div className="ar-grid">
           <form className="ar-card" onSubmit={handleSubmit}>

@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -402,6 +403,7 @@ function Leave() {
     e.preventDefault();
     if (!form.reason || !form.fromDate || !form.toDate) return;
     setSubmitting(true);
+    const { showToast } = useToast();
     try {
       const token = localStorage.getItem("token");
       await axios.post(`${API}/leaves`, form, {

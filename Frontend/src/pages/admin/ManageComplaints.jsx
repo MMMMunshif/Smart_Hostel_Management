@@ -1,10 +1,12 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-
+import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 function ManageComplaints() {
+
+  const { showToast } = useToast();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -20,7 +22,7 @@ function ManageComplaints() {
       setComplaints(Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     } catch (err) {
-      console.error(err);
+      showToast("Failed to load complaints.", "error");
       setLoading(false);
     }
   };
@@ -29,21 +31,25 @@ function ManageComplaints() {
     fetchComplaints();
   }, []);
 
-  const updateStatus = async (id, status) => {
-    try {
-      const token = localStorage.getItem("token");
+  const [updating, setUpdating] = useState(null); // stores the id being updated
 
-      await axios.put(
-        `${API}/complaints/${id}`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      fetchComplaints();
-    } catch (err) {
-      alert("Update failed");
-    }
-  };
+const updateStatus = async (id, status) => {
+  try {
+    setUpdating(id);
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `${API}/complaints/${id}`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    showToast(`Status updated to "${status}".`, "success");
+    fetchComplaints();
+  } catch (err) {
+    showToast("Failed to update complaint status.", "error");
+  } finally {
+    setUpdating(null);
+  }
+};
 
   const filtered = useMemo(() => {
     return complaints.filter((c) => {
@@ -100,6 +106,9 @@ function ManageComplaints() {
                 </p>
                 <p>⚙ {c.category}</p>
                 <p>🔥 {c.priority}</p>
+                <p>🕐 {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US", {
+  day: "numeric", month: "short", year: "numeric"
+}) : "N/A"}</p>
               </div>
 
               <div style={styles.actions}>

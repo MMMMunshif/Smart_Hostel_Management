@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -339,13 +340,7 @@ const css = `
     font-size: 0.86rem;
   }
 
-  .message-box {
-    margin-bottom: 16px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 0.82rem;
-    font-weight: 600;
-  }
+ 
 
   .message-box.success {
     background: #eafaf5;
@@ -418,7 +413,7 @@ function ManageRequests() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchRequests();
@@ -441,8 +436,8 @@ function ManageRequests() {
       setRequests(data);
       setLoading(false);
     } catch (err) {
-      console.error(err);
-      setMessage({ type: "error", text: "Failed to load requests." });
+      
+     showToast("Failed to load requests.", "error");
       setLoading(false);
     }
   };
@@ -464,11 +459,12 @@ function ManageRequests() {
       setMessage({ type: "success", text: "Request approved successfully." });
       fetchRequests();
     } catch (err) {
-      console.error(err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || err.response?.data?.error || "Approval failed.",
-      });
+      showToast(
+    err.response?.data?.message ||
+    err.response?.data?.error ||
+    "Approval failed.",
+    "error"
+  );
     }
   };
 
@@ -485,15 +481,15 @@ function ManageRequests() {
           },
         }
       );
-
       setMessage({ type: "success", text: "Request rejected successfully." });
       fetchRequests();
     } catch (err) {
-      console.error(err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || err.response?.data?.error || "Rejection failed.",
-      });
+      showToast(
+    err.response?.data?.message ||
+    err.response?.data?.error ||
+    "Rejection failed.",
+    "error"
+  );
     }
   };
 
@@ -540,11 +536,7 @@ function ManageRequests() {
           </div>
         </div>
 
-        {message.text && (
-          <div className={`message-box ${message.type}`}>
-            {message.text}
-          </div>
-        )}
+     
 
         <div className="summary-grid">
           <div className="summary-card">

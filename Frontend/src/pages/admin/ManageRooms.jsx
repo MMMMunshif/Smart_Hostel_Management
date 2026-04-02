@@ -2,6 +2,7 @@ import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -482,22 +483,7 @@ const css = `
     font-size: 0.88rem;
   }
 
-  .toast {
-    position: fixed;
-    right: 28px;
-    bottom: 28px;
-    z-index: 9999;
-    padding: 14px 18px;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 0.84rem;
-    font-weight: 700;
-    box-shadow: 0 10px 28px rgba(0,0,0,.14);
-    animation: fadeUp .3s ease;
-  }
-
-  .toast.success { background: #00c48c; }
-  .toast.error { background: #ff5c72; }
+ 
 
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -667,13 +653,13 @@ function RoomCard({ room, onDelete, onView }) {
 
 function ManageRooms() {
   const navigate = useNavigate();
+  const { setToast } = useToast();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [toast, setToast] = useState(null);
-
+  
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -879,9 +865,7 @@ function ManageRooms() {
           </div>
         </div>
 
-        {toast && (
-          <div className={`toast ${toast.type}`}>{toast.msg}</div>
-        )}
+       
       </div>
     </Layout>
   );

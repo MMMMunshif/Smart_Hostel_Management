@@ -21,6 +21,7 @@ import Visitors from "./pages/student/Visitors.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
 import Suggested from "./pages/student/Suggested";
 import Profile from "./pages/student/Profile.jsx";
+import EditProfile from "./pages/student/EditProfile.jsx";
 
 
 
@@ -62,6 +63,7 @@ function App() {
         <Route path="/admin/visitors" element={<ManageVisitors />} />
         <Route path="/matching" element={<Suggested />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit" element={<EditProfile />} />
       </Routes>
 
       <Footer />

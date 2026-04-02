@@ -1,12 +1,14 @@
 import Layout from "../../components/Layout";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
 function ManageLeaves() {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   const fetchLeaves = async () => {
     try {
@@ -19,7 +21,7 @@ function ManageLeaves() {
       setLeaves(Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     } catch (err) {
-      console.error(err);
+      showToast("Failed to load leave requests.", "error");
       setLoading(false);
     }
   };
@@ -29,21 +31,21 @@ function ManageLeaves() {
   }, []);
 
   // UPDATE STATUS
-  const updateStatus = async (id, status) => {
-    try {
-      const token = localStorage.getItem("token");
+ const updateStatus = async (id, status) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `${API}/leaves/${id}`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    showToast(`Leave request ${status.toLowerCase()}.`, "success");
+    fetchLeaves();
+  } catch (err) {
+    showToast("Error updating leave status.", "error");
+  }
+}; 
 
-      await axios.put(
-        `${API}/leaves/${id}`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      fetchLeaves();
-    } catch (err) {
-      alert("Error updating");
-    }
-  };
 
   return (
     <Layout role="admin">

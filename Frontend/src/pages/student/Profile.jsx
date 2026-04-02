@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -636,12 +637,12 @@ function Profile() {
                 </div>
 
                 <div className="sp-hero-actions">
-                  <button className="btn-primary" onClick={() => alert("Edit profile form next")}>
-                    ✎ Edit Profile
-                  </button>
-                  <button className="btn-soft" onClick={() => alert("Preferences editor next")}>
-                    Preferences
-                  </button>
+                  <button className="btn-primary" onClick={() => (window.location.href = "/profile/edit")}>
+  ✎ Edit Profile
+</button>
+                 <button className="btn-soft" onClick={() => (window.location.href = "/profile/edit")}>
+  Preferences
+</button>
                 </div>
               </div>
 

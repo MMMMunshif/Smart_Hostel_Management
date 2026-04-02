@@ -1,6 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
@@ -8,6 +9,7 @@ function ManageVisitors() {
   const [visitors, setVisitors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const { showToast } = useToast();
 
   // FETCH
   const fetchVisitors = async () => {
@@ -20,10 +22,10 @@ function ManageVisitors() {
 
       setVisitors(res.data || []);
       setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
+    }catch (err) {
+  showToast("Failed to load visitor requests.", "error");
+  setLoading(false);
+}
   };
 
   useEffect(() => {
@@ -31,22 +33,20 @@ function ManageVisitors() {
   }, []);
 
   // UPDATE STATUS
-  const updateStatus = async (id, status) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      await axios.put(
-        `${API}/visitors/${id}`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      fetchVisitors();
-    } catch (err) {
-      alert("Error updating");
-    }
-  };
-
+ const updateStatus = async (id, status) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `${API}/visitors/${id}`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    showToast(`Visitor request ${status.toLowerCase()}.`, "success");
+    fetchVisitors();
+  } catch (err) {
+    showToast("Error updating visitor status.", "error");
+  }
+};
   // FILTER
   const filtered = useMemo(() => {
     return visitors.filter(

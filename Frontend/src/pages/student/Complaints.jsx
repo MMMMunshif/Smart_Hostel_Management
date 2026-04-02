@@ -1,7 +1,7 @@
 import Layout from "../../components/Layout";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-
+import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 const css = `
@@ -508,6 +508,7 @@ function Complaints() {
   };
 
   const fetchComplaints = async () => {
+    const { showToast } = useToast();
     try {
       const token = localStorage.getItem("token");
       const res   = await axios.get(`${API}/complaints/my`, {
