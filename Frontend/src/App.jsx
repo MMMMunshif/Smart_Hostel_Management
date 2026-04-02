@@ -19,6 +19,7 @@ import Leave from "./pages/student/Leave.jsx";
 import ManageLeave from "./pages/admin/ManageLeave.jsx";
 import Visitors from "./pages/student/Visitors.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
+import Suggested from "./pages/student/Suggested";
 
 
 
@@ -58,6 +59,7 @@ function App() {
         <Route path="/admin/leaves" element={<ManageLeave />} />
         <Route path="/visitors" element={<Visitors />} />
         <Route path="/admin/visitors" element={<ManageVisitors />} />
+        <Route path="/matching" element={<Suggested />} />
       </Routes>
 
       <Footer />
