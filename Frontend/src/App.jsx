@@ -8,66 +8,193 @@ import Login from "./pages/Login";
 import Rooms from "./pages/student/Rooms.jsx";
 import Requests from "./pages/student/Requests.jsx";
 import StudentDashboard from "./pages/student/StudentDashboard.jsx";
+import Suggested from "./pages/student/Suggested.jsx";
+import Profile from "./pages/student/Profile.jsx";
+import EditProfile from "./pages/student/EditProfile.jsx";
+import Complaints from "./pages/student/Complaints.jsx";
+import Leave from "./pages/student/Leave.jsx";
+import Visitors from "./pages/student/Visitors.jsx";
+
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
 import ManageRooms from "./pages/admin/ManageRooms.jsx";
 import ManageRequests from "./pages/admin/ManageRequests.jsx";
 import Students from "./pages/admin/Students.jsx";
-import Complaints from "./pages/student/Complaints.jsx";
 import ManageComplaints from "./pages/admin/ManageComplaints.jsx";
-import Leave from "./pages/student/Leave.jsx";
 import ManageLeave from "./pages/admin/ManageLeave.jsx";
-import Visitors from "./pages/student/Visitors.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
-import Suggested from "./pages/student/Suggested";
-import Profile from "./pages/student/Profile.jsx";
-import EditProfile from "./pages/student/EditProfile.jsx";
 
-
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
 // Components
-
 import Footer from "./components/Footer.jsx";
-import Layout from "./components/Layout.jsx";
 
 function App() {
-
-  const role = localStorage.getItem("role");
-
   return (
     <BrowserRouter>
-
       <Routes>
-
         {/* PUBLIC */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        <Route path="/rooms" element={<Rooms />} />
-        <Route path="/admin/add-room" element={<AddRoom />} />
-        <Route path="/admin/rooms" element={<ManageRooms />} />
-    
-        <Route path="/admin/requests" element={<ManageRequests />} />
-       <Route path="/admin/students" element={<Students />} />
+        {/* STUDENT */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute role="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute role="student">
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/dashboard" element={<StudentDashboard />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/requests" element={<Requests />} />
-        <Route path="/complaints" element={<Complaints />} />
-        <Route path="/admin/complaints" element={<ManageComplaints />} />
-        <Route path="/leave" element={<Leave />} />
-        <Route path="/admin/leaves" element={<ManageLeave />} />
-        <Route path="/visitors" element={<Visitors />} />
-        <Route path="/admin/visitors" element={<ManageVisitors />} />
-        <Route path="/matching" element={<Suggested />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/edit" element={<EditProfile />} />
+        <Route
+          path="/profile/edit"
+          element={
+            <ProtectedRoute role="student">
+              <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/rooms"
+          element={
+            <ProtectedRoute role="student">
+              <Rooms />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/requests"
+          element={
+            <ProtectedRoute role="student">
+              <Requests />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/complaints"
+          element={
+            <ProtectedRoute role="student">
+              <Complaints />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/leave"
+          element={
+            <ProtectedRoute role="student">
+              <Leave />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/visitors"
+          element={
+            <ProtectedRoute role="student">
+              <Visitors />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/matching"
+          element={
+            <ProtectedRoute role="student">
+              <Suggested />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ADMIN */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/add-room"
+          element={
+            <ProtectedRoute role="admin">
+              <AddRoom />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/rooms"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageRooms />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/requests"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageRequests />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/students"
+          element={
+            <ProtectedRoute role="admin">
+              <Students />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/complaints"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageComplaints />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/leaves"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageLeave />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/visitors"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageVisitors />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       <Footer />
-
     </BrowserRouter>
   );
 }

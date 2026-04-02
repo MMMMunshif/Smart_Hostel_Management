@@ -1,5 +1,6 @@
 const Leave = require("../models/Leave");
 const Room = require("../models/Room");
+const { createNotification } = require("./notificationController");
 
 // STUDENT: Create leave request
 exports.createLeave = async (req, res) => {
@@ -89,6 +90,14 @@ exports.updateLeaveStatus = async (req, res) => {
 
     leave.status = status;
     await leave.save();
+
+    await createNotification({
+      user: leave.student,
+      title: "Leave Request Updated",
+      message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} was ${status}.`,
+      type: "leave",
+      link: "/leave",
+    });
 
     const updatedLeave = await Leave.findById(leave._id)
       .populate("student", "name email")

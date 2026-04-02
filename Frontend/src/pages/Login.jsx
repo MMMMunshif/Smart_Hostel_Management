@@ -381,6 +381,7 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
       localStorage.setItem("name", data.user.name);
+      localStorage.setItem("userId", data.user._id);
 
       if (data.user.role === "admin") navigate("/admin/dashboard");
       else navigate("/dashboard");

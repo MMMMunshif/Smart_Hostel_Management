@@ -341,10 +341,10 @@ function EditProfile() {
     smoking: "",
     noise: "",
   });
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
     fetchMe();
@@ -374,60 +374,57 @@ function EditProfile() {
 
       setLoading(false);
     } catch (err) {
-      console.error(err);
-      setMessage({ type: "error", text: "Failed to load profile." });
-      setLoading(false);
-    }
+  showToast("Failed to load profile.", "error");
+  setLoading(false);
+}
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setMessage({ type: "", text: "" });
+const handleSave = async (e) => {
+  e.preventDefault();
+  setSaving(true);
 
-    try {
-      const token = localStorage.getItem("token");
+  try {
+    const token = localStorage.getItem("token");
 
-      const payload = {
-        name: form.name,
-        email: form.email,
-        preferences: {
-          sleep: form.sleep,
-          cleanliness: form.cleanliness,
-          study: form.study,
-          smoking: form.smoking,
-          noise: form.noise,
-        },
-      };
+    const payload = {
+      name: form.name,
+      email: form.email,
+      preferences: {
+        sleep: form.sleep,
+        cleanliness: form.cleanliness,
+        study: form.study,
+        smoking: form.smoking,
+        noise: form.noise,
+      },
+    };
 
-      if (form.password.trim()) {
-        payload.password = form.password;
-      }
-
-      const res = await axios.put(`${API}/users/me`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const updatedUser = res.data?.user || res.data;
-
-      if (updatedUser?.name) {
-        localStorage.setItem("name", updatedUser.name);
-      }
-
-      setForm((prev) => ({ ...prev, password: "" }));
-      setMessage({ type: "success", text: "Profile updated successfully." });
-      setSaving(false);
-    } catch (err) {
-      console.error(err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.error || "Failed to update profile.",
-      });
-      setSaving(false);
+    if (form.password.trim()) {
+      payload.password = form.password;
     }
-  };
 
-  if (loading) {
+    const res = await axios.put(`${API}/users/me`, payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const updatedUser = res.data?.user || res.data;
+
+    if (updatedUser?.name) {
+      localStorage.setItem("name", updatedUser.name);
+    }
+
+    setForm((prev) => ({ ...prev, password: "" }));
+    showToast("Profile updated successfully!", "success");
+    setSaving(false);
+  } catch (err) {
+    showToast(
+      err.response?.data?.error || "Failed to update profile.",
+      "error"
+    );
+    setSaving(false);
+  }
+};
+
+if (loading) {
     return (
       <Layout role="student">
         <style>{css}</style>
@@ -626,11 +623,7 @@ function EditProfile() {
                 </button>
               </div>
 
-              {message.text ? (
-                <div className={`ep-message ${message.type}`}>
-                  {message.text}
-                </div>
-              ) : null}
+             
             </form>
           </div>
         </div>

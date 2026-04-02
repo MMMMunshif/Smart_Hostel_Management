@@ -460,6 +460,7 @@ function Requests() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchRequests();
@@ -483,9 +484,9 @@ function Requests() {
 setRequests(myRequests);
       setLoading(false);
     } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
+  showToast("Failed to load your requests.", "error");
+  setLoading(false);
+}
   };
 
   const filteredRequests = useMemo(() => {

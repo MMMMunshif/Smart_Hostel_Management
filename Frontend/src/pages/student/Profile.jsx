@@ -499,6 +499,7 @@ function Profile() {
   const [rooms, setRooms] = useState([]);
   const [topMatch, setTopMatch] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchProfileData();
@@ -530,9 +531,9 @@ function Profile() {
       setTopMatch(matchData.length ? matchData[0] : null);
       setLoading(false);
     } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
+  showToast("Failed to load profile data.", "error");
+  setLoading(false);
+}
   };
 
   const assignedRoom = useMemo(() => {

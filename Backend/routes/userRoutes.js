@@ -87,4 +87,46 @@ router.get("/me", require("../middleware/Authmiddleware").protect, async (req, r
   res.json({ user });
 });
 
+// PUT /api/users/me
+router.put("/me", require("../middleware/Authmiddleware").protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const {
+      name,
+      email,
+      password,
+      preferences,
+    } = req.body;
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+
+    if (password) {
+      user.password = password;
+    }
+
+    if (user.role === "student" && preferences) {
+      user.preferences = {
+        ...user.preferences?.toObject?.(),
+        ...user.preferences,
+        ...preferences,
+      };
+    }
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

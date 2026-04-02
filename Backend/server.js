@@ -42,6 +42,7 @@ const requestRoutes = require("./routes/requestRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 const visitorRoutes = require("./routes/visitorRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/matches", matchRoutes);
@@ -50,6 +51,7 @@ app.use("/api/requests", requestRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/visitors", visitorRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

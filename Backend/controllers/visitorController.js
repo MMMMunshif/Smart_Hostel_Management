@@ -1,9 +1,8 @@
 const Visitor = require("../models/Visitor");
 const Room = require("../models/Room");
+const { createNotification } = require("./notificationController");
 
-/* =====================================================
-   CREATE VISITOR REQUEST (STUDENT)
-===================================================== */
+/* CREATE VISITOR REQUEST (STUDENT) */
 exports.createVisitor = async (req, res) => {
   try {
     const {
@@ -18,7 +17,6 @@ exports.createVisitor = async (req, res) => {
       outTime,
     } = req.body;
 
-    // basic validation
     if (
       !roomId ||
       !visitorName ||
@@ -33,7 +31,6 @@ exports.createVisitor = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // check room exists
     const room = await Room.findById(roomId);
     if (!room) {
       return res.status(404).json({ message: "Room not found" });
@@ -59,9 +56,7 @@ exports.createVisitor = async (req, res) => {
   }
 };
 
-/* =====================================================
-   GET MY VISITORS (STUDENT)
-===================================================== */
+/* GET MY VISITORS (STUDENT) */
 exports.getMyVisitors = async (req, res) => {
   try {
     const visitors = await Visitor.find({ student: req.user._id })
@@ -74,9 +69,7 @@ exports.getMyVisitors = async (req, res) => {
   }
 };
 
-/* =====================================================
-   GET ALL VISITORS (ADMIN)
-===================================================== */
+/* GET ALL VISITORS (ADMIN) */
 exports.getAllVisitors = async (req, res) => {
   try {
     const visitors = await Visitor.find()
@@ -90,9 +83,7 @@ exports.getAllVisitors = async (req, res) => {
   }
 };
 
-/* =====================================================
-   UPDATE STATUS (ADMIN)
-===================================================== */
+/* UPDATE STATUS (ADMIN) */
 exports.updateVisitorStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -109,6 +100,14 @@ exports.updateVisitorStatus = async (req, res) => {
 
     visitor.status = status;
     await visitor.save();
+
+    await createNotification({
+      user: visitor.student,
+      title: "Visitor Request Updated",
+      message: `Your visitor request for ${visitor.visitorName} was ${status}.`,
+      type: "visitor",
+      link: "/visitors",
+    });
 
     res.json({ message: `Visitor ${status}` });
   } catch (err) {

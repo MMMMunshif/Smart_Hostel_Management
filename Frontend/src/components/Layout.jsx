@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -39,7 +39,7 @@ const css = `
     border-bottom: 1px solid #f0f2f6;
     flex-shrink: 0;
     overflow: hidden;
-    cursor: pointer;
+    text-decoration: none;
   }
   .logo-icon {
     width: 36px; height: 36px;
@@ -88,22 +88,40 @@ const css = `
     cursor: pointer;
     transition: background .15s, color .15s;
     margin-bottom: 2px;
+    text-decoration: none;
     color: #5a6070;
     white-space: nowrap;
     overflow: hidden;
+    position: relative;
   }
   .nav-item:hover { background: #f5f6f9; color: #1a1d23; }
-  .nav-item.active { background: #e8faf9; color: #00b8b0; }
+  .nav-item.active {
+    background: #e8faf9;
+    color: #00b8b0;
+  }
   .nav-item.active .nav-icon { color: #00d4c8; }
 
-  .nav-icon { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
-  .nav-label { font-size: 0.84rem; font-weight: 600; transition: opacity .2s; flex: 1; }
+  .nav-icon {
+    font-size: 1.05rem;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .nav-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: opacity .2s;
+    flex: 1;
+  }
   .sidebar.collapsed .nav-label { opacity: 0; pointer-events: none; }
 
   .nav-badge {
-    background: #00d4c8; color: #fff;
-    font-size: 0.6rem; font-weight: 700;
-    padding: 2px 6px; border-radius: 99px;
+    background: #00d4c8;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 99px;
     transition: opacity .2s;
   }
   .sidebar.collapsed .nav-badge { opacity: 0; }
@@ -158,24 +176,10 @@ const css = `
     background: none; border: none; cursor: pointer;
     color: #c0c5d0; font-size: 0.95rem;
     transition: color .15s; flex-shrink: 0;
+    transition: opacity .2s;
   }
   .sidebar.collapsed .logout-btn { opacity: 0; pointer-events: none; }
   .logout-btn:hover { color: #e05555; }
-
-  /* Skeleton shimmer */
-  @keyframes shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position:  200% 0; }
-  }
-  .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: 4px;
-    display: block;
-  }
-  .sk-name { width: 90px; height: 10px; margin-bottom: 5px; }
-  .sk-role { width: 60px; height: 8px;  }
 
   .layout-main {
     flex: 1;
@@ -214,6 +218,7 @@ const css = `
   }
   .topbar-search input::placeholder { color: #b0b6c3; }
   .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-icon-wrap { position: relative; }
   .topbar-icon-btn {
     width: 36px; height: 36px; border-radius: 50%;
     border: none; background: #f5f6f9; cursor: pointer;
@@ -226,6 +231,109 @@ const css = `
     width: 7px; height: 7px; border-radius: 50%;
     background: #00d4c8; border: 1.5px solid #fff;
   }
+  .notif-count {
+    position: absolute;
+    top: -3px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 99px;
+    background: #ff5b6b;
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #fff;
+  }
+
+  .notif-menu {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    width: 360px;
+    max-height: 430px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e9edf5;
+    border-radius: 16px;
+    box-shadow: 0 18px 48px rgba(0,0,0,.12);
+    z-index: 200;
+    padding: 10px 0;
+  }
+  .notif-menu-header {
+    padding: 8px 14px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f3f7;
+    margin-bottom: 4px;
+  }
+  .notif-menu-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #1a1d23;
+  }
+  .notif-menu-action {
+    border: none;
+    background: none;
+    color: #00b8b0;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .notif-empty {
+    padding: 20px 14px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #97a0b0;
+  }
+  .notif-item {
+    padding: 11px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: background .15s;
+    border-left: 3px solid transparent;
+  }
+  .notif-item:hover { background: #f8fbfd; }
+  .notif-item.unread {
+    background: #f5fffe;
+    border-left-color: #00d4c8;
+  }
+  .notif-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: #eef6f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+  .notif-body { min-width: 0; flex: 1; }
+  .notif-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1a1d23;
+    margin-bottom: 3px;
+  }
+  .notif-message {
+    font-size: 0.73rem;
+    color: #697386;
+    line-height: 1.45;
+    margin-bottom: 4px;
+  }
+  .notif-time {
+    font-size: 0.66rem;
+    color: #a1a8b5;
+  }
+
   .topbar-user {
     display: flex; align-items: center; gap: 10px;
     cursor: pointer; padding: 4px 8px; border-radius: 10px;
@@ -237,7 +345,6 @@ const css = `
     background: linear-gradient(135deg, #00d4c8, #0099a8);
     display: flex; align-items: center; justify-content: center;
     font-size: 0.7rem; font-weight: 800; color: #fff;
-    flex-shrink: 0;
   }
   .topbar-user-name { font-size: 0.82rem; font-weight: 700; color: #1a1d23; }
   .topbar-user-sub  { font-size: 0.68rem; color: #9aa0ae; }
@@ -248,120 +355,108 @@ const css = `
     .sidebar { transform: translateX(-100%); }
     .sidebar.mobile-open { transform: translateX(0); }
     .layout-main { margin-left: 0 !important; }
+    .notif-menu { width: min(340px, calc(100vw - 24px)); right: -40px; }
   }
 `;
 
-/* ── Nav configs ─────────────────────────────────── */
 const STUDENT_NAV = [
-  { section: null, items: [{ icon: "⊞", label: "Dashboard", path: "/dashboard" }] },
-  { section: "Profile", items: [{ icon: "○", label: "My Profile", path: "/profile" }] },
+  {
+    section: null,
+    items: [{ icon: "⊞", label: "Dashboard", path: "/dashboard" }],
+  },
+  {
+    section: "Profile",
+    items: [{ icon: "○", label: "My Profile", path: "/profile" }],
+  },
   {
     section: "Matching",
     items: [
       { icon: "✦", label: "Suggested", path: "/matching" },
-      { icon: "☰", label: "Requests",  path: "/requests", badge: "3" },
+      { icon: "☰", label: "Requests", path: "/requests" },
     ],
   },
   {
     section: "Hostel",
     items: [
-      { icon: "⊡", label: "Rooms",      path: "/rooms"      },
+      { icon: "⊡", label: "Rooms", path: "/rooms" },
       { icon: "⚑", label: "Complaints", path: "/complaints" },
-      { icon: "✈", label: "Leave",      path: "/leave"      },
-      { icon: "👤", label: "Visitors",   path: "/visitors"   },
+      { icon: "✈", label: "Leave", path: "/leave" },
+      { icon: "👤", label: "Visitors", path: "/visitors" },
     ],
   },
 ];
 
 const ADMIN_NAV = [
-  { section: null, items: [{ icon: "⊞", label: "Dashboard", path: "/admin" }] },
+  {
+    section: null,
+    items: [{ icon: "⊞", label: "Dashboard", path: "/admin/dashboard" }],
+  },
   {
     section: "Management",
     items: [
-      { icon: "⊡", label: "Rooms",    path: "/admin/rooms"    },
+      { icon: "⊡", label: "Rooms", path: "/admin/rooms" },
       { icon: "👥", label: "Students", path: "/admin/students" },
-      { icon: "☰", label: "Requests", path: "/admin/requests", badge: "5" },
+      { icon: "☰", label: "Requests", path: "/admin/requests" },
     ],
   },
   {
     section: "Hostel Ops",
     items: [
-      { icon: "⚑", label: "Complaints",  path: "/admin/complaints"  },
-      { icon: "✈", label: "Leave Req.",   path: "/admin/leave"       },
-      { icon: "👤", label: "Visitors",    path: "/admin/visitors"    },
-      { icon: "🔧", label: "Maintenance", path: "/admin/maintenance" },
-    ],
-  },
-  {
-    section: "Communication",
-    items: [
-      { icon: "💬", label: "Messages", path: "/admin/messages", badge: "2" },
-      { icon: "📢", label: "Notices",  path: "/admin/notices"  },
-    ],
-  },
-  {
-    section: "System",
-    items: [
-      { icon: "📊", label: "Reports",  path: "/admin/reports"  },
-      { icon: "⚙",  label: "Settings", path: "/admin/settings" },
+      { icon: "⚑", label: "Complaints", path: "/admin/complaints" },
+      { icon: "✈", label: "Leave Req.", path: "/admin/leaves" },
+      { icon: "👤", label: "Visitors", path: "/admin/visitors" },
+      { icon: "➕", label: "Add Room", path: "/admin/add-room" },
     ],
   },
 ];
 
-/* ── Helpers ─────────────────────────────────────── */
-function getInitials(name = "") {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0].toUpperCase())
-    .slice(0, 2)
-    .join("");
+function timeAgo(dateStr) {
+  if (!dateStr) return "Now";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${days}d ago`;
 }
 
-function buildSubtitle(user, role) {
-  if (!user) return role === "admin" ? "Administrator" : "Student";
-  const parts = [user.department, user.year].filter(Boolean);
-  return parts.length ? parts.join(" · ") : user.role ?? (role === "admin" ? "Administrator" : "Student");
+function getNotifIcon(type = "general") {
+  switch (type) {
+    case "request": return "☰";
+    case "complaint": return "⚑";
+    case "leave": return "✈";
+    case "visitor": return "👤";
+    case "notice": return "📢";
+    default: return "🔔";
+  }
 }
 
-/* ── useCurrentUser hook ─────────────────────────── */
-function useCurrentUser() {
-  const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) { setLoading(false); return; }
-
-    axios
-      .get(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setUser(res.data.user))
-      .catch((err) => console.warn("Layout user fetch:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { user, loading };
-}
-
-/* ── Sidebar ─────────────────────────────────────── */
-function Sidebar({ role, collapsed, onToggle, user, loading }) {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+function Sidebar({ role, collapsed, onToggle }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const navConfig = role === "admin" ? ADMIN_NAV : STUDENT_NAV;
 
-  const initials = loading ? "…" : (getInitials(user?.name) || (role === "admin" ? "AU" : "S"));
-  const name     = user?.name ?? "";
-  const subtitle = buildSubtitle(user, role);
+  const name = localStorage.getItem("name") || (role === "admin" ? "Admin User" : "Student User");
+
+  const user = {
+    name,
+    sub: role === "admin" ? "Administrator" : "Student",
+    initials: name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/");
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-      <div className="sidebar-logo" onClick={() => navigate(role === "admin" ? "/admin" : "/dashboard")}>
+      <div
+        className="sidebar-logo"
+        onClick={() => navigate(role === "admin" ? "/admin/dashboard" : "/dashboard")}
+        style={{ cursor: "pointer" }}
+      >
         <div className="logo-icon">N</div>
         <span className="logo-name">NestMate</span>
       </div>
@@ -391,19 +486,10 @@ function Sidebar({ role, collapsed, onToggle, user, loading }) {
       </button>
 
       <div className="sidebar-user">
-        <div className="user-avatar">{initials}</div>
+        <div className="user-avatar">{user.initials}</div>
         <div className="user-info">
-          {loading ? (
-            <>
-              <span className="skeleton sk-name" />
-              <span className="skeleton sk-role" />
-            </>
-          ) : (
-            <>
-              <div className="user-name">{name}</div>
-              <div className="user-role">{subtitle}</div>
-            </>
-          )}
+          <div className="user-name">{user.name}</div>
+          <div className="user-role">{user.sub}</div>
         </div>
         <button className="logout-btn" onClick={handleLogout} title="Logout">⇥</button>
       </div>
@@ -411,11 +497,89 @@ function Sidebar({ role, collapsed, onToggle, user, loading }) {
   );
 }
 
-/* ── TopBar ──────────────────────────────────────── */
-function TopBar({ role, user, loading }) {
-  const initials = loading ? "…" : (getInitials(user?.name) || (role === "admin" ? "AU" : "S"));
-  const name     = user?.name ?? "";
-  const subtitle = buildSubtitle(user, role);
+function TopBar({ role }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const menuRef = useRef(null);
+
+  const name = localStorage.getItem("name") || (role === "admin" ? "Admin User" : "Student User");
+
+  const user = {
+    name,
+    sub: role === "admin" ? "Administrator" : "Student",
+    initials: name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const [notifRes, countRes] = await Promise.all([
+        axios.get(`${API}/notifications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API}/notifications/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      setNotifications(Array.isArray(notifRes.data) ? notifRes.data : []);
+      setUnreadCount(countRes.data?.count || 0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markAsRead = async (id, link) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${API}/notifications/${id}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchNotifications();
+      if (link) navigate(link);
+    } catch (err) {
+      console.error(err);
+      if (link) navigate(link);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${API}/notifications/read-all`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchNotifications();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   return (
     <div className="topbar">
@@ -423,25 +587,58 @@ function TopBar({ role, user, loading }) {
         <span style={{ color: "#b0b6c3" }}>🔍</span>
         <input placeholder="Search rooms, students, or requests..." />
       </div>
+
       <div className="topbar-right">
-        <button className="topbar-icon-btn">
-          🔔<span className="notif-dot" />
-        </button>
-        <button className="topbar-icon-btn">❓</button>
-        <div className="topbar-user">
-          <div className="topbar-user-avatar">{initials}</div>
-          <div>
-            {loading ? (
-              <>
-                <span className="skeleton sk-name" style={{ display: "block", marginBottom: 5 }} />
-                <span className="skeleton sk-role" style={{ display: "block" }} />
-              </>
-            ) : (
-              <>
-                <div className="topbar-user-name">{name}</div>
-                <div className="topbar-user-sub">{subtitle}</div>
-              </>
+        <div className="topbar-icon-wrap" ref={menuRef}>
+          <button
+            className="topbar-icon-btn"
+            onClick={() => setOpen((prev) => !prev)}
+            title="Notifications"
+          >
+            🔔
+            {unreadCount > 0 && (
+              <span className="notif-count">{unreadCount > 9 ? "9+" : unreadCount}</span>
             )}
+          </button>
+
+          {open && (
+            <div className="notif-menu">
+              <div className="notif-menu-header">
+                <div className="notif-menu-title">Notifications</div>
+                <button className="notif-menu-action" onClick={markAllAsRead}>
+                  Mark all read
+                </button>
+              </div>
+
+              {notifications.length === 0 ? (
+                <div className="notif-empty">No notifications yet.</div>
+              ) : (
+                notifications.map((item) => (
+                  <div
+                    key={item._id}
+                    className={`notif-item ${item.isRead ? "" : "unread"}`}
+                    onClick={() => markAsRead(item._id, item.link)}
+                  >
+                    <div className="notif-icon">{getNotifIcon(item.type)}</div>
+                    <div className="notif-body">
+                      <div className="notif-title">{item.title}</div>
+                      <div className="notif-message">{item.message}</div>
+                      <div className="notif-time">{timeAgo(item.createdAt)}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        <button className="topbar-icon-btn">❓</button>
+
+        <div className="topbar-user">
+          <div className="topbar-user-avatar">{user.initials}</div>
+          <div>
+            <div className="topbar-user-name">{user.name}</div>
+            <div className="topbar-user-sub">{user.sub}</div>
           </div>
         </div>
       </div>
@@ -449,10 +646,8 @@ function TopBar({ role, user, loading }) {
   );
 }
 
-/* ── Layout ──────────────────────────────────────── */
 function Layout({ children, role }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, loading } = useCurrentUser();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <>
@@ -460,13 +655,11 @@ function Layout({ children, role }) {
       <div className="layout-root">
         <Sidebar
           role={role}
-          collapsed={isCollapsed}
-          onToggle={() => setIsCollapsed((c) => !c)}
-          user={user}
-          loading={loading}
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((c) => !c)}
         />
-        <div className={`layout-main ${isCollapsed ? "collapsed" : ""}`}>
-          <TopBar role={role} user={user} loading={loading} />
+        <div className={`layout-main ${collapsed ? "collapsed" : ""}`}>
+          <TopBar role={role} />
           <div className="page-content">{children}</div>
         </div>
       </div>
