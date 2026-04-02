@@ -14,6 +14,7 @@ import EditProfile from "./pages/student/EditProfile.jsx";
 import Complaints from "./pages/student/Complaints.jsx";
 import Leave from "./pages/student/Leave.jsx";
 import Visitors from "./pages/student/Visitors.jsx";
+import Notices from "./pages/student/Notices.jsx";
 
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
@@ -22,6 +23,7 @@ import ManageRequests from "./pages/admin/ManageRequests.jsx";
 import Students from "./pages/admin/Students.jsx";
 import ManageComplaints from "./pages/admin/ManageComplaints.jsx";
 import ManageLeave from "./pages/admin/ManageLeave.jsx";
+import ManageNotices from "./pages/admin/ManageNotices.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
 
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
@@ -120,6 +122,15 @@ function App() {
           }
         />
 
+        <Route
+  path="/notices"
+  element={
+    <ProtectedRoute role="student">
+      <Notices />
+    </ProtectedRoute>
+  }
+/>
+
         {/* ADMIN */}
         <Route
           path="/admin/dashboard"
@@ -192,6 +203,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+  path="/admin/notices"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageNotices />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
 
       <Footer />

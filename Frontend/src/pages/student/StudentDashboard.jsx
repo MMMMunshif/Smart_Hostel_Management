@@ -6,14 +6,15 @@ import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
   .sd-root {
-    font-family: 'Inter', sans-serif;
-    background: #f4f7fb;
-    min-height: 100vh;
-    color: #111827;
+      font-family: 'DM Sans', sans-serif;   
+      background: #f4f7fb;
+      min-height: 100vh;
+      color: #111827;
   }
+
+  
 
   .sd-page {
     padding: 28px;
@@ -644,6 +645,7 @@ function StudentDashboard() {
   const [leaves, setLeaves] = useState([]);
   const [visitors, setVisitors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchDashboardData();

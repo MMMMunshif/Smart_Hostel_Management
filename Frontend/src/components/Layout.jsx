@@ -382,6 +382,7 @@ const STUDENT_NAV = [
       { icon: "⚑", label: "Complaints", path: "/complaints" },
       { icon: "✈", label: "Leave", path: "/leave" },
       { icon: "👤", label: "Visitors", path: "/visitors" },
+      { icon: "📢", label: "Notices", path: "/notices" },
     ],
   },
 ];
@@ -406,6 +407,7 @@ const ADMIN_NAV = [
       { icon: "✈", label: "Leave Req.", path: "/admin/leaves" },
       { icon: "👤", label: "Visitors", path: "/admin/visitors" },
       { icon: "➕", label: "Add Room", path: "/admin/add-room" },
+      { icon: "📢", label: "Notices", path: "/admin/notices" },
     ],
   },
 ];

@@ -1,515 +1,938 @@
 import Layout from "../../components/Layout";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-
-
+import axios from "axios";
+import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
-  .ad-root { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .ad-root {
+    font-family: 'Inter', sans-serif;
+    background: #f4f7fb;
+    min-height: 100vh;
+    color: #111827;
   }
 
-  .ad-header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
-    animation: fadeUp .35s ease both;
+  .ad-page {
+    padding: 28px;
+    display: grid;
+    gap: 20px;
   }
-  .ad-header h1 { font-size: 1.5rem; font-weight: 800; color: #1a1d23; letter-spacing: -0.02em; }
-  .ad-header p  { font-size: 0.82rem; color: #8a90a0; margin-top: 3px; }
-  .ad-header-actions { display: flex; gap: 10px; }
-  .btn-sm-outline {
-    padding: 8px 16px; border: 1.5px solid #e2e5ec; border-radius: 9px;
-    background: #fff; font-family: inherit; font-size: 0.8rem; font-weight: 600;
-    color: #4a5060; cursor: pointer; transition: border-color .15s;
+
+  .ad-hero {
+    background: linear-gradient(135deg, #e8fbf8, #eef7ff);
+    border: 1px solid #e2f2f0;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 10px 28px rgba(17,24,39,.04);
   }
-  .btn-sm-outline:hover { border-color: #00d4c8; }
-  .btn-sm-primary {
-    padding: 8px 16px; background: #00d4c8; color: #fff; border: none;
-    border-radius: 9px; font-family: inherit; font-size: 0.8rem;
-    font-weight: 700; cursor: pointer; transition: opacity .15s;
+
+  .ad-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
-  .btn-sm-primary:hover { opacity: .88; }
+
+  .ad-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #8b95a7;
+    margin-bottom: 10px;
+  }
+
+  .ad-breadcrumb span {
+    color: #00b8ae;
+    font-weight: 700;
+  }
+
+  .ad-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .ad-sub {
+    font-size: 0.95rem;
+    color: #667085;
+    line-height: 1.6;
+    max-width: 760px;
+  }
+
+  .ad-hero-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ad-btn-primary {
+    border: none;
+    background: #58e4de;
+    color: #0f3d3c;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 0.86rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .ad-btn-outline {
+    border: 1.5px solid #d9ece9;
+    background: rgba(255,255,255,.7);
+    color: #4b5563;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
 
   .ad-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
+    gap: 16px;
   }
+
   .ad-stat {
-    background: #fff; border: 1px solid #eef0f4; border-radius: 14px;
-    padding: 18px 20px; animation: fadeUp .4s ease both;
+    background: #fff;
+    border: 1px solid #e8edf4;
+    border-radius: 22px;
+    padding: 20px;
+    box-shadow: 0 10px 26px rgba(17,24,39,.04);
+    min-height: 132px;
   }
-  .ad-stat:nth-child(1){animation-delay:.04s}
-  .ad-stat:nth-child(2){animation-delay:.08s}
-  .ad-stat:nth-child(3){animation-delay:.12s}
-  .ad-stat:nth-child(4){animation-delay:.16s}
-  .ad-stat:nth-child(5){animation-delay:.20s}
-  .ad-stat:nth-child(6){animation-delay:.24s}
-  .stat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .stat-ico {
-    width: 36px; height: 36px; border-radius: 10px; background: #e8faf9;
-    display: flex; align-items: center; justify-content: center; font-size: 1rem;
+
+  .ad-stat-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 16px;
   }
-  .stat-trend { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 99px; }
-  .trend-up   { background: #e6faf2; color: #00a36c; }
-  .trend-down { background: #fff0f0; color: #e05555; }
-  .trend-warn { background: #fff8e6; color: #d4800a; }
-  .trend-info { background: #e8f4ff; color: #2563eb; }
-  .stat-val   { font-size: 1.7rem; font-weight: 800; color: #1a1d23; line-height: 1; }
-  .stat-lbl   { font-size: 0.72rem; color: #9aa0ae; margin-top: 3px; }
+
+  .ad-stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    background: #f2fbfa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+
+  .ad-stat-chip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .chip-teal { background: #ecfdf5; color: #047857; }
+  .chip-gold { background: #fff7ed; color: #c2410c; }
+  .chip-blue { background: #eff6ff; color: #1d4ed8; }
+  .chip-red  { background: #fef2f2; color: #b91c1c; }
+
+  .ad-stat-value {
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+
+  .ad-stat-label {
+    font-size: 0.86rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
 
   .ad-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.2fr 1fr 1fr;
     gap: 18px;
-    margin-bottom: 20px;
-  }
-  .ad-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 18px;
-    margin-bottom: 20px;
+    align-items: start;
   }
 
   .ad-card {
-    background: #fff; border: 1px solid #eef0f4; border-radius: 16px;
-    padding: 20px 22px; animation: fadeUp .4s ease .12s both;
-  }
-  .ad-card-hdr {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
-  }
-  .ad-card-title { font-size: 0.92rem; font-weight: 800; color: #1a1d23; }
-  .ad-card-link  {
-    font-size: 0.75rem; font-weight: 600; color: #00b8b0;
-    background: none; border: none; cursor: pointer; font-family: inherit;
+    background: #fff;
+    border: 1px solid #e8edf4;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(17,24,39,.04);
   }
 
-  .req-list { display: flex; flex-direction: column; gap: 10px; }
-  .req-row  {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 12px; border-radius: 10px;
-    border: 1.5px solid #eef0f4; transition: background .15s;
+  .ad-card-pad {
+    padding: 20px;
   }
-  .req-row:hover { background: #f8fffe; border-color: #d0f0ed; }
-  .req-ava {
-    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.7rem; font-weight: 800; color: #fff;
+
+  .ad-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
   }
-  .req-info { flex: 1; min-width: 0; }
-  .req-name { font-size: 0.8rem; font-weight: 700; color: #1a1d23; }
-  .req-meta { font-size: 0.68rem; color: #9aa0ae; }
-  .req-pill {
-    font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 99px;
+
+  .ad-card-title {
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .ad-card-sub {
+    font-size: 0.84rem;
+    color: #6b7280;
+  }
+
+  .ad-link-btn {
+    border: none;
+    background: transparent;
+    color: #00b8ae;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .ad-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .ad-quick {
+    border: 1px solid #edf1f7;
+    background: #fbfcfe;
+    border-radius: 18px;
+    padding: 18px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: .18s ease;
+  }
+
+  .ad-quick:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(17,24,39,.05);
+    border-color: #dceeea;
+  }
+
+  .ad-quick-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #eef8f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .ad-quick-title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .ad-quick-sub {
+    font-size: 0.76rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .ad-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .ad-item {
+    border: 1px solid #edf1f7;
+    border-radius: 18px;
+    padding: 14px;
+    background: #fff;
+  }
+
+  .ad-item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .ad-item-title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .ad-item-sub {
+    font-size: 0.78rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .ad-pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
     white-space: nowrap;
   }
-  .pill-pending  { background: #fff8e6; color: #d4800a; }
-  .pill-approved { background: #e6faf2; color: #00a36c; }
-  .pill-rejected { background: #fff0f0; color: #e05555; }
-  .pill-review   { background: #e8f4ff; color: #2563eb; }
 
-  .comp-list { display: flex; flex-direction: column; gap: 8px; }
-  .comp-row {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 10px 12px; border-radius: 10px; border: 1.5px solid #eef0f4;
-  }
-  .comp-icon { font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
-  .comp-title { font-size: 0.8rem; font-weight: 700; color: #1a1d23; }
-  .comp-sub   { font-size: 0.68rem; color: #9aa0ae; }
-  .comp-status{
-    margin-left: auto; font-size: 0.65rem; font-weight: 700;
-    padding: 3px 9px; border-radius: 99px; white-space: nowrap; align-self: center;
-  }
-  .cs-open     { background: #fff0f0; color: #e05555; }
-  .cs-progress { background: #fff8e6; color: #d4800a; }
-  .cs-resolved { background: #e6faf2; color: #00a36c; }
+  .pill-pending { background: #fff7ed; color: #c2410c; }
+  .pill-approved { background: #ecfdf5; color: #047857; }
+  .pill-rejected { background: #fef2f2; color: #b91c1c; }
+  .pill-progress { background: #eff6ff; color: #1d4ed8; }
+  .pill-resolved { background: #ecfdf5; color: #047857; }
+  .pill-open { background: #fef2f2; color: #b91c1c; }
+  .pill-notice { background: #f5f3ff; color: #7c3aed; }
 
-  .occ-list { display: flex; flex-direction: column; gap: 12px; }
-  .occ-row  {}
-  .occ-top  { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 5px; }
-  .occ-name { font-weight: 600; color: #1a1d23; }
-  .occ-val  { color: #9aa0ae; }
-  .occ-track { height: 6px; background: #f0f2f6; border-radius: 99px; overflow: hidden; }
-  .occ-fill  { height: 100%; border-radius: 99px; transition: width .8s cubic-bezier(.22,1,.36,1); }
-
-  .notice-list { display: flex; flex-direction: column; gap: 10px; }
-  .notice-item {
-    display: flex; gap: 10px; align-items: flex-start;
-    padding: 10px 0; border-bottom: 1px solid #f5f6f9;
-  }
-  .notice-item:last-child { border-bottom: none; }
-  .notice-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-  .notice-text{ font-size: 0.78rem; color: #4a5060; flex: 1; line-height: 1.4; }
-  .notice-time{ font-size: 0.68rem; color: #b0b6c3; white-space: nowrap; }
-
-  .quick-grid {
-    display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px;
-    animation: fadeUp .4s ease .08s both;
-  }
-  .quick-btn {
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    padding: 16px 10px; background: #fff; border: 1.5px solid #eef0f4;
-    border-radius: 14px; cursor: pointer; transition: border-color .15s, background .15s;
-    font-family: inherit;
-  }
-  .quick-btn:hover { border-color: #00d4c8; background: #f8fffe; }
-  .quick-btn-icon  { font-size: 1.4rem; }
-  .quick-btn-label { font-size: 0.72rem; font-weight: 700; color: #4a5060; text-align: center; }
-
-  .empty-state {
-    text-align: center; padding: 24px 0;
-    font-size: 0.8rem; color: #b0b6c3;
+  .ad-mini-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 
-  @media (max-width: 1100px) {
-    .ad-stats { grid-template-columns: repeat(3,1fr); }
-    .ad-grid-3 { grid-template-columns: 1fr 1fr; }
+  .ad-mini-box {
+    background: #f8fafc;
+    border: 1px solid #edf1f7;
+    border-radius: 16px;
+    padding: 14px;
   }
-  @media (max-width: 768px) {
-    .ad-stats { grid-template-columns: repeat(2,1fr); }
-    .ad-grid, .ad-grid-3 { grid-template-columns: 1fr; }
-    .quick-grid { grid-template-columns: repeat(2,1fr); }
+
+  .ad-mini-kicker {
+    font-size: 0.66rem;
+    color: #9ca3af;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .ad-mini-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .ad-mini-sub {
+    font-size: 0.76rem;
+    color: #6b7280;
+  }
+
+  .ad-chart {
+    display: grid;
+    gap: 12px;
+  }
+
+  .ad-chart-row {
+    display: grid;
+    gap: 6px;
+  }
+
+  .ad-chart-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.82rem;
+  }
+
+  .ad-chart-name {
+    font-weight: 700;
+    color: #374151;
+  }
+
+  .ad-chart-value {
+    color: #6b7280;
+    font-weight: 700;
+  }
+
+  .ad-track {
+    height: 10px;
+    background: #eef2f7;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .ad-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #58e4de, #93c5fd);
+  }
+
+  .ad-notice-box {
+    background: linear-gradient(135deg, #fff9ec, #fff5e6);
+    border: 1px solid #f6e6c5;
+    border-radius: 20px;
+    padding: 18px;
+  }
+
+  .ad-notice-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+
+  .ad-notice-sub {
+    font-size: 0.84rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .ad-notice-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .ad-notice-item {
+    background: rgba(255,255,255,.75);
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(246,230,197,.8);
+  }
+
+  .ad-notice-item-title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .ad-notice-item-time {
+    font-size: 0.74rem;
+    color: #6b7280;
+  }
+
+  .ad-empty {
+    font-size: 0.86rem;
+    color: #6b7280;
+    padding: 8px 0;
+  }
+
+  @media (max-width: 1200px) {
+    .ad-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .ad-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ad-quick-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .ad-page {
+      padding: 16px;
+    }
+
+    .ad-stats,
+    .ad-quick-grid,
+    .ad-mini-metrics {
+      grid-template-columns: 1fr;
+    }
   }
 `;
 
-const WING_COLORS = ["#00d4c8", "#f59e0b", "#10b981", "#6366f1", "#f43f5e", "#3b82f6"];
-
-const NOTICES = [
-  { dot: "#00d4c8", text: "Semester fee deadline: 15th April 2026.",         time: "Today"  },
-  { dot: "#f59e0b", text: "Maintenance scheduled for Block D on 5th April.", time: "2d ago" },
-  { dot: "#10b981", text: "New visitor policy effective from 1st April.",     time: "3d ago" },
-];
-
-const QUICK_ACTIONS = [
-  { icon: "➕", label: "Add Room", onclick: () => navigate("/admin/add-room") },
-  { icon: "📢", label: "Post Notice", onclick: () => navigate("/admin/post-notice") },
-  { icon: "✅", label: "Approve Req.", onclick: () => navigate("/admin/approve-requests") },
-  { icon: "📊", label: "Export Report", onclick: () => navigate("/admin/export-report") },
-  { icon: "💬", label: "Message All", onclick: () => navigate("/admin/message-all") },
-  { icon: "🔧", label: "Maintenance", onclick: () => navigate("/admin/maintenance")  },
-  { icon: "✈",  label: "Leave Mgmt"   },
-  { icon: "👤", label: "Add Student"   },
-];
-
-// avatar background per name
-const avatarBg = (name = "") => {
-  const colors = [
-    "linear-gradient(135deg,#f4a6a6,#e88)",
-    "linear-gradient(135deg,#a6c8f4,#6af)",
-    "linear-gradient(135deg,#c4a6f4,#a6f)",
-    "linear-gradient(135deg,#a6f4c8,#6fa)",
-    "linear-gradient(135deg,#f4d4a6,#fa6)",
-    "linear-gradient(135deg,#f4a6d4,#f6a)",
-  ];
-  const idx = name.charCodeAt(0) % colors.length;
-  return colors[idx];
-};
-
-const pillClass = (status = "") => {
-  switch (status.toLowerCase()) {
-    case "approved": return "pill-approved";
-    case "rejected": return "pill-rejected";
-    case "review":   return "pill-review";
-    default:         return "pill-pending";
-  }
-};
-
-const timeAgo = (dateStr) => {
-  if (!dateStr) return "";
+function timeAgo(dateStr) {
+  if (!dateStr) return "Now";
   const diff = Date.now() - new Date(dateStr).getTime();
-  const mins  = Math.floor(diff / 60000);
+  const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
-  const days  = Math.floor(diff / 86400000);
-  if (mins < 60)  return `${mins}m ago`;
+  const days = Math.floor(diff / 86400000);
+
+  if (mins < 60) return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
-};
+}
+
+function requestPill(status = "") {
+  const s = status.toLowerCase();
+  if (s === "approved") return "pill-approved";
+  if (s === "rejected") return "pill-rejected";
+  return "pill-pending";
+}
+
+function complaintPill(status = "") {
+  const s = status.toLowerCase();
+  if (s === "resolved") return "pill-resolved";
+  if (s === "in progress") return "pill-progress";
+  return "pill-open";
+}
+
+function initials(name = "ST") {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 function AdminDashboard() {
-  const [stats, setStats] = useState({
-    users: 0,
-    availableRooms: 0,
-    pendingRequests: 0,
-    totalRooms: 0,
-    maintenanceRooms: 0,
-    fullRooms: 0,
-  });
-  const [requests, setRequests]     = useState([]);
-  const [occupancyData, setOccupancyData] = useState([]);
-  const [loading, setLoading]       = useState(true);
-   const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  useEffect(() => { fetchAll(); }, []);
+  const [loading, setLoading] = useState(true);
+
+  const [students, setStudents] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [visitors, setVisitors] = useState([]);
+  const [notices, setNotices] = useState([]);
 
   const fetchAll = async () => {
     try {
       const token = localStorage.getItem("token");
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [usersRes, roomsRes, requestsRes] = await Promise.all([
-        axios.get(`${API}/users`,    { headers }),
-        axios.get(`${API}/rooms`,    { headers }),
+      const [
+        studentsRes,
+        roomsRes,
+        requestsRes,
+        complaintsRes,
+        leavesRes,
+        visitorsRes,
+        noticesRes,
+      ] = await Promise.all([
+        axios.get(`${API}/users`, { headers }),
+        axios.get(`${API}/rooms`, { headers }),
         axios.get(`${API}/requests`, { headers }),
+        axios.get(`${API}/complaints`, { headers }),
+        axios.get(`${API}/leaves`, { headers }),
+        axios.get(`${API}/visitors`, { headers }),
+        axios.get(`${API}/notices/admin`, { headers }),
       ]);
 
-      const roomsData    = Array.isArray(roomsRes.data) ? roomsRes.data : roomsRes.data.rooms    || [];
-      const requestsData = Array.isArray(requestsRes.data) ? requestsRes.data : requestsRes.data.requests || [];
-      const usersData    = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data.users    || [];
+      const studentsData = Array.isArray(studentsRes.data)
+        ? studentsRes.data
+        : studentsRes.data.users || [];
 
-      // ── Stats ──
-    setStats({
-  users: usersData.length,
-  availableRooms: roomsData.filter(
-    r => r.status?.toLowerCase().trim() === "available"
-  ).length,
-  pendingRequests: requestsData.filter(
-    r => r.status?.toLowerCase() === "pending"
-  ).length,
-  totalRooms: roomsData.length,
-  maintenanceRooms: roomsData.filter(
-    r => r.status?.toLowerCase() === "maintenance"
-  ).length,
-  fullRooms: roomsData.filter(
-    r => r.status?.toLowerCase() === "full"
-  ).length,
-});
+      const roomsData = Array.isArray(roomsRes.data)
+        ? roomsRes.data
+        : roomsRes.data.rooms || [];
 
-      // ── Requests ──
+      const requestsData = Array.isArray(requestsRes.data)
+        ? requestsRes.data
+        : requestsRes.data.requests || [];
+
+      const complaintsData = Array.isArray(complaintsRes.data)
+        ? complaintsRes.data
+        : complaintsRes.data.complaints || [];
+
+      const leavesData = Array.isArray(leavesRes.data)
+        ? leavesRes.data
+        : leavesRes.data.leaves || [];
+
+      const visitorsData = Array.isArray(visitorsRes.data)
+        ? visitorsRes.data
+        : visitorsRes.data.visitors || [];
+
+      const noticesData = Array.isArray(noticesRes.data)
+        ? noticesRes.data
+        : noticesRes.data.notices || [];
+
+      setStudents(studentsData.filter((u) => u.role === "student"));
+      setRooms(roomsData);
       setRequests(requestsData);
-
-      // ── Occupancy per wing ──
-      const wingMap = {};
-      roomsData.forEach(room => {
-        if (!wingMap[room.wing]) wingMap[room.wing] = { total: 0, filled: 0 };
-        wingMap[room.wing].total  += room.capacity;
-        wingMap[room.wing].filled += room.occupants.length;
-      });
-      setOccupancyData(
-        Object.entries(wingMap).map(([name, { total, filled }], i) => ({
-          name,
-          pct:   total > 0 ? Math.round((filled / total) * 100) : 0,
-          color: WING_COLORS[i % WING_COLORS.length],
-        }))
-      );
-
+      setComplaints(complaintsData);
+      setLeaves(leavesData);
+      setVisitors(visitorsData);
+      setNotices(noticesData);
       setLoading(false);
     } catch (err) {
       console.error(err);
+      showToast("Failed to load admin dashboard", "error");
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  const stats = useMemo(() => {
+    const totalStudents = students.length;
+    const totalRooms = rooms.length;
+    const availableRooms = rooms.filter(
+      (r) => (r.status || "").toLowerCase() === "available"
+    ).length;
+    const fullRooms = rooms.filter(
+      (r) => (r.status || "").toLowerCase() === "full"
+    ).length;
+    const pendingRequests = requests.filter(
+      (r) => (r.status || "").toLowerCase() === "pending"
+    ).length;
+    const openComplaints = complaints.filter((c) => {
+      const s = (c.status || "").toLowerCase();
+      return s === "pending" || s === "in progress";
+    }).length;
+    const pendingLeaves = leaves.filter(
+      (l) => (l.status || "").toLowerCase() === "pending"
+    ).length;
+    const pendingVisitors = visitors.filter(
+      (v) => (v.status || "").toLowerCase() === "pending"
+    ).length;
+
+    return {
+      totalStudents,
+      totalRooms,
+      availableRooms,
+      fullRooms,
+      pendingRequests,
+      openComplaints,
+      pendingLeaves,
+      pendingVisitors,
+    };
+  }, [students, rooms, requests, complaints, leaves, visitors]);
+
+  const occupancyByWing = useMemo(() => {
+    const wingMap = {};
+
+    rooms.forEach((room) => {
+      const wing = room.wing || "Unknown";
+      const capacity = Number(room.capacity || 0);
+      const filled = Array.isArray(room.occupants) ? room.occupants.length : 0;
+
+      if (!wingMap[wing]) {
+        wingMap[wing] = { total: 0, filled: 0 };
+      }
+
+      wingMap[wing].total += capacity;
+      wingMap[wing].filled += filled;
+    });
+
+    return Object.entries(wingMap).map(([wing, data]) => ({
+      wing,
+      percent: data.total > 0 ? Math.round((data.filled / data.total) * 100) : 0,
+      label: `${data.filled}/${data.total} occupied`,
+    }));
+  }, [rooms]);
+
+  const latestRequests = useMemo(() => requests.slice(0, 5), [requests]);
+  const latestComplaints = useMemo(() => complaints.slice(0, 5), [complaints]);
+  const latestNotices = useMemo(() => notices.slice(0, 3), [notices]);
+
   const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 
   return (
     <Layout role="admin">
       <style>{css}</style>
+
       <div className="ad-root">
-
-        {/* ── Header ── */}
-        <div className="ad-header">
-          <div>
-            <h1>Admin Dashboard</h1>
-            <p>Overview of hostel operations — {today}</p>
-          </div>
-          <div className="ad-header-actions">
-            <button className="btn-sm-outline">📊 Export Report</button>
-            <button className="btn-sm-primary" onClick={() => navigate("/admin/add-room")}>  ➕ Add Room </button>
-          </div>
-        </div>
-
-        {/* ── Stats ── */}
-        <div className="ad-stats">
-          {[
-            { ico:"🛏",  val: stats.availableRooms,  lbl:"Available Rooms",   trend:"Live",   tc:"trend-up"   },
-            { ico:"👥",  val: stats.users,            lbl:"Total Students",    trend:"Live",   tc:"trend-up"   },
-            { ico:"☰",   val: stats.pendingRequests,  lbl:"Pending Requests",  trend:"Review", tc:"trend-warn" },
-            { ico:"🏠",  val: stats.totalRooms,       lbl:"Total Rooms",       trend:"All",    tc:"trend-info" },
-            { ico:"🔧",  val: stats.maintenanceRooms, lbl:"Under Maintenance", trend:"Check",  tc:"trend-warn" },
-            { ico:"🔴",  val: stats.fullRooms,        lbl:"Full Rooms",        trend:"Full",   tc:"trend-down" },
-          ].map((s, i) => (
-            <div key={i} className="ad-stat">
-              <div className="stat-top">
-                <div className="stat-ico">{s.ico}</div>
-                <span className={`stat-trend ${s.tc}`}>{s.trend}</span>
+        <div className="ad-page">
+          <div className="ad-hero">
+            <div className="ad-hero-top">
+              <div>
+                <div className="ad-breadcrumb">
+                  Dashboard › Admin › <span>Overview</span>
+                </div>
+                <div className="ad-title">Hostel Operations Dashboard</div>
+                <div className="ad-sub">
+                  Monitor room occupancy, requests, complaints, notices, and daily residence operations from one place.
+                  Today is {today}.
+                </div>
               </div>
-              <div className="stat-val">
-                {loading ? "—" : s.val}
+
+              <div className="ad-hero-actions">
+                <button className="ad-btn-outline" onClick={() => navigate("/admin/notices")}>
+                  📢 Post Notice
+                </button>
+                <button className="ad-btn-primary" onClick={() => navigate("/admin/add-room")}>
+                  ➕ Add Room
+                </button>
               </div>
-              <div className="stat-lbl">{s.lbl}</div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* ── Quick Actions ── */}
-        <div className="quick-grid">
-          {QUICK_ACTIONS.map((a, i) => (
-            <button key={i} className="quick-btn">
-              <span className="quick-btn-icon">{a.icon}</span>
-              <span className="quick-btn-label">{a.label}</span>
-            </button>
-          ))}
-        </div>
+          <div className="ad-stats">
+            <div className="ad-stat">
+              <div className="ad-stat-top">
+                <div className="ad-stat-icon">👥</div>
+                <div className="ad-stat-chip chip-blue">Live</div>
+              </div>
+              <div className="ad-stat-value">{loading ? "—" : stats.totalStudents}</div>
+              <div className="ad-stat-label">Total active students in the residence system</div>
+            </div>
 
-        {/* ── Main grid ── */}
-        <div className="ad-grid">
+            <div className="ad-stat">
+              <div className="ad-stat-top">
+                <div className="ad-stat-icon">🏠</div>
+                <div className="ad-stat-chip chip-teal">Rooms</div>
+              </div>
+              <div className="ad-stat-value">{loading ? "—" : stats.availableRooms}</div>
+              <div className="ad-stat-label">Available rooms ready for assignment</div>
+            </div>
 
-          {/* Pending Requests — real data */}
+            <div className="ad-stat">
+              <div className="ad-stat-top">
+                <div className="ad-stat-icon">📝</div>
+                <div className="ad-stat-chip chip-gold">Pending</div>
+              </div>
+              <div className="ad-stat-value">{loading ? "—" : stats.pendingRequests}</div>
+              <div className="ad-stat-label">Room requests awaiting review or approval</div>
+            </div>
+
+            <div className="ad-stat">
+              <div className="ad-stat-top">
+                <div className="ad-stat-icon">⚠️</div>
+                <div className="ad-stat-chip chip-red">Attention</div>
+              </div>
+              <div className="ad-stat-value">{loading ? "—" : stats.openComplaints}</div>
+              <div className="ad-stat-label">Open complaint issues requiring hostel follow-up</div>
+            </div>
+          </div>
+
           <div className="ad-card">
-            <div className="ad-card-hdr">
-              <span className="ad-card-title">Recent Requests</span>
-              <button className="ad-card-link">View All →</button>
+            <div className="ad-card-pad">
+              <div className="ad-card-head">
+                <div>
+                  <div className="ad-card-title">Quick Actions</div>
+                  <div className="ad-card-sub">Jump into the most common admin tasks.</div>
+                </div>
+              </div>
+
+              <div className="ad-quick-grid">
+                <button className="ad-quick" onClick={() => navigate("/admin/add-room")}>
+                  <div className="ad-quick-icon">➕</div>
+                  <div className="ad-quick-title">Add Room</div>
+                  <div className="ad-quick-sub">Create a new room listing with pricing and details.</div>
+                </button>
+
+                <button className="ad-quick" onClick={() => navigate("/admin/requests")}>
+                  <div className="ad-quick-icon">☰</div>
+                  <div className="ad-quick-title">Manage Requests</div>
+                  <div className="ad-quick-sub">Approve or reject pending room requests.</div>
+                </button>
+
+                <button className="ad-quick" onClick={() => navigate("/admin/complaints")}>
+                  <div className="ad-quick-icon">⚑</div>
+                  <div className="ad-quick-title">Resolve Complaints</div>
+                  <div className="ad-quick-sub">Track room issues and update status quickly.</div>
+                </button>
+
+                <button className="ad-quick" onClick={() => navigate("/admin/notices")}>
+                  <div className="ad-quick-icon">📢</div>
+                  <div className="ad-quick-title">Post Notice</div>
+                  <div className="ad-quick-sub">Send policy, fee, emergency, or event updates.</div>
+                </button>
+              </div>
             </div>
-            <div className="req-list">
-              {loading && <div className="empty-state">Loading...</div>}
-              {!loading && requests.length === 0 && (
-                <div className="empty-state">No requests yet.</div>
-              )}
-              {!loading && requests.slice(0, 5).map((r, i) => {
-                const name = r.student?.name || r.student?.email || "Student";
-                const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-                return (
-                  <div key={i} className="req-row">
-                    <div className="req-ava" style={{ background: avatarBg(name) }}>
-                      {initials}
-                    </div>
-                    <div className="req-info">
-                      <div className="req-name">{name}</div>
-                      <div className="req-meta">
-                        Room {r.room?.roomNumber || "N/A"} · {timeAgo(r.createdAt)}
-                      </div>
-                    </div>
-                    <span className={`req-pill ${pillClass(r.status)}`}>{r.status}</span>
+          </div>
+
+          <div className="ad-grid">
+            <div className="ad-card">
+              <div className="ad-card-pad">
+                <div className="ad-card-head">
+                  <div>
+                    <div className="ad-card-title">Recent Room Requests</div>
+                    <div className="ad-card-sub">Most recent student room applications.</div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <button className="ad-link-btn" onClick={() => navigate("/admin/requests")}>
+                    View All →
+                  </button>
+                </div>
 
-          {/* Pending only — filtered view */}
-          <div className="ad-card">
-            <div className="ad-card-hdr">
-              <span className="ad-card-title">Pending Approvals</span>
-              <button className="ad-card-link">View All →</button>
-            </div>
-            <div className="req-list">
-              {loading && <div className="empty-state">Loading...</div>}
-              {!loading && requests.filter(r => r.status === "Pending").length === 0 && (
-                <div className="empty-state">No pending requests 🎉</div>
-              )}
-              {!loading && requests
-                .filter(r => r.status === "Pending")
-                .slice(0, 5)
-                .map((r, i) => {
-                  const name = r.student?.name || r.student?.email || "Student";
-                  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-                  return (
-                    <div key={i} className="req-row">
-                      <div className="req-ava" style={{ background: avatarBg(name) }}>
-                        {initials}
-                      </div>
-                      <div className="req-info">
-                        <div className="req-name">{name}</div>
-                        <div className="req-meta">
-                          Room {r.room?.roomNumber || "N/A"} · {timeAgo(r.createdAt)}
+                <div className="ad-list">
+                  {loading ? (
+                    <div className="ad-empty">Loading requests...</div>
+                  ) : latestRequests.length === 0 ? (
+                    <div className="ad-empty">No room requests yet.</div>
+                  ) : (
+                    latestRequests.map((item) => (
+                      <div className="ad-item" key={item._id}>
+                        <div className="ad-item-top">
+                          <div>
+                            <div className="ad-item-title">
+                              {item.student?.name || item.user?.name || "Student"}
+                            </div>
+                            <div className="ad-item-sub">
+                              Room {item.room?.roomNumber || "N/A"} • {timeAgo(item.createdAt)}
+                            </div>
+                          </div>
+
+                          <span className={`ad-pill ${requestPill(item.status)}`}>
+                            {item.status || "Pending"}
+                          </span>
+                        </div>
+
+                        <div className="ad-item-sub">
+                          {item.student?.email || item.user?.email || "No email available"}
                         </div>
                       </div>
-                      <span className="req-pill pill-pending">Pending</span>
-                    </div>
-                  );
-                })}
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* ── Bottom grid ── */}
-        <div className="ad-grid-3">
-
-          {/* Wing Occupancy — real data */}
-          <div className="ad-card">
-            <div className="ad-card-hdr">
-              <span className="ad-card-title">Wing Occupancy</span>
-            </div>
-            <div className="occ-list">
-              {loading && <div className="empty-state">Loading...</div>}
-              {!loading && occupancyData.length === 0 && (
-                <div className="empty-state">No room data.</div>
-              )}
-              {!loading && occupancyData.map((o, i) => (
-                <div key={i} className="occ-row">
-                  <div className="occ-top">
-                    <span className="occ-name">{o.name}</span>
-                    <span className="occ-val">{o.pct}%</span>
-                  </div>
-                  <div className="occ-track">
-                    <div className="occ-fill" style={{ width: `${o.pct}%`, background: o.color }} />
+            <div className="ad-card">
+              <div className="ad-card-pad">
+                <div className="ad-card-head">
+                  <div>
+                    <div className="ad-card-title">Operations Snapshot</div>
+                    <div className="ad-card-sub">Current request and movement summary.</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Notices — static (until you have a notices API) */}
-          <div className="ad-card">
-            <div className="ad-card-hdr">
-              <span className="ad-card-title">Recent Notices</span>
-              <button className="ad-card-link">Post →</button>
-            </div>
-            <div className="notice-list">
-              {NOTICES.map((n, i) => (
-                <div key={i} className="notice-item">
-                  <div className="notice-dot" style={{ background: n.dot }} />
-                  <div className="notice-text">{n.text}</div>
-                  <div className="notice-time">{n.time}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Room Status Summary */}
-          <div className="ad-card">
-            <div className="ad-card-hdr">
-              <span className="ad-card-title">Room Status Summary</span>
-            </div>
-            <div className="occ-list">
-              {[
-                { label: "Available",    val: stats.availableRooms,   color: "#00d4c8" },
-                { label: "Full",         val: stats.fullRooms,         color: "#ff6b6b" },
-                { label: "Maintenance",  val: stats.maintenanceRooms,  color: "#f59e0b" },
-              ].map((item, i) => {
-                const pct = stats.totalRooms > 0
-                  ? Math.round((item.val / stats.totalRooms) * 100)
-                  : 0;
-                return (
-                  <div key={i} className="occ-row">
-                    <div className="occ-top">
-                      <span className="occ-name">{item.label}</span>
-                      <span className="occ-val">
-                        {loading ? "—" : `${item.val} rooms (${pct}%)`}
-                      </span>
-                    </div>
-                    <div className="occ-track">
-                      <div className="occ-fill" style={{ width: `${pct}%`, background: item.color }} />
-                    </div>
+                <div className="ad-mini-metrics">
+                  <div className="ad-mini-box">
+                    <div className="ad-mini-kicker">LEAVE REQUESTS</div>
+                    <div className="ad-mini-value">{loading ? "—" : stats.pendingLeaves}</div>
+                    <div className="ad-mini-sub">Pending leave approvals</div>
                   </div>
-                );
-              })}
+
+                  <div className="ad-mini-box">
+                    <div className="ad-mini-kicker">VISITOR REQUESTS</div>
+                    <div className="ad-mini-value">{loading ? "—" : stats.pendingVisitors}</div>
+                    <div className="ad-mini-sub">Pending visitor entries</div>
+                  </div>
+
+                  <div className="ad-mini-box">
+                    <div className="ad-mini-kicker">TOTAL ROOMS</div>
+                    <div className="ad-mini-value">{loading ? "—" : stats.totalRooms}</div>
+                    <div className="ad-mini-sub">Configured room inventory</div>
+                  </div>
+
+                  <div className="ad-mini-box">
+                    <div className="ad-mini-kicker">FULL ROOMS</div>
+                    <div className="ad-mini-value">{loading ? "—" : stats.fullRooms}</div>
+                    <div className="ad-mini-sub">Rooms currently filled</div>
+                  </div>
+                </div>
+
+                <div style={{ height: 18 }} />
+
+                <div className="ad-card-title" style={{ fontSize: "1rem", marginBottom: 10 }}>
+                  Occupancy by Wing
+                </div>
+
+                <div className="ad-chart">
+                  {loading ? (
+                    <div className="ad-empty">Loading occupancy...</div>
+                  ) : occupancyByWing.length === 0 ? (
+                    <div className="ad-empty">No wing data available.</div>
+                  ) : (
+                    occupancyByWing.map((wing) => (
+                      <div className="ad-chart-row" key={wing.wing}>
+                        <div className="ad-chart-top">
+                          <div className="ad-chart-name">{wing.wing}</div>
+                          <div className="ad-chart-value">{wing.label}</div>
+                        </div>
+                        <div className="ad-track">
+                          <div className="ad-fill" style={{ width: `${wing.percent}%` }} />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gap: 18 }}>
+              <div className="ad-card">
+                <div className="ad-card-pad">
+                  <div className="ad-card-head">
+                    <div>
+                      <div className="ad-card-title">Recent Complaints</div>
+                      <div className="ad-card-sub">Latest reported student issues.</div>
+                    </div>
+                    <button className="ad-link-btn" onClick={() => navigate("/admin/complaints")}>
+                      Open →
+                    </button>
+                  </div>
+
+                  <div className="ad-list">
+                    {loading ? (
+                      <div className="ad-empty">Loading complaints...</div>
+                    ) : latestComplaints.length === 0 ? (
+                      <div className="ad-empty">No complaints found.</div>
+                    ) : (
+                      latestComplaints.map((item) => (
+                        <div className="ad-item" key={item._id}>
+                          <div className="ad-item-top">
+                            <div>
+                              <div className="ad-item-title">{item.title || "Complaint"}</div>
+                              <div className="ad-item-sub">
+                                {item.student?.name || "Student"} • {timeAgo(item.createdAt)}
+                              </div>
+                            </div>
+
+                            <span className={`ad-pill ${complaintPill(item.status)}`}>
+                              {item.status || "Pending"}
+                            </span>
+                          </div>
+
+                          <div className="ad-item-sub">
+                            {item.room?.roomNumber ? `Room ${item.room.roomNumber}` : "No room linked"}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="ad-notice-box">
+                <div className="ad-notice-title">Latest Notices</div>
+                <div className="ad-notice-sub">
+                  Recently published announcements visible to students and staff.
+                </div>
+
+                <div className="ad-notice-list">
+                  {loading ? (
+                    <div className="ad-empty">Loading notices...</div>
+                  ) : latestNotices.length === 0 ? (
+                    <div className="ad-empty">No notices posted yet.</div>
+                  ) : (
+                    latestNotices.map((notice) => (
+                      <div className="ad-notice-item" key={notice._id}>
+                        <div className="ad-notice-item-title">{notice.title}</div>
+                        <div className="ad-notice-item-time">
+                          {notice.category} • {timeAgo(notice.createdAt)}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <button className="ad-btn-outline" onClick={() => navigate("/admin/notices")}>
+                    Manage Notices
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
       </div>
     </Layout>

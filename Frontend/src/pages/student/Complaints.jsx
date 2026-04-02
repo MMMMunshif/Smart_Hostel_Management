@@ -419,19 +419,6 @@ const css = `
   }
   .cp-empty-sub { font-size: 0.8rem; color: var(--ink-muted); }
 
-  /* ── Toast ── */
-  .cp-toast {
-    position: fixed; bottom: 28px; right: 28px;
-    padding: 14px 20px; border-radius: 16px; color: #fff;
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-size: 0.84rem; font-weight: 700;
-    z-index: 9999; animation: toastIn .35s cubic-bezier(.22,1,.36,1);
-    display: flex; align-items: center; gap: 10px;
-    min-width: 260px; box-shadow: var(--shadow-lg);
-  }
-  .cp-toast.success { background: linear-gradient(135deg, #059669, #10b981); }
-  .cp-toast.error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
-
   @media (max-width: 1100px) {
     .cp-body { grid-template-columns: 1fr; }
     .cp-form-panel { position: static; }
@@ -490,25 +477,21 @@ const STATUS_TABS = [
 
 /* ── Component ── */
 function Complaints() {
+  // ✅ useToast called at the top level — fixes the hook violation
+  const { showToast } = useToast();
+
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading]       = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch]         = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [toast, setToast]           = useState(null);
   const [inlineMsg, setInlineMsg]   = useState({ type:"", text:"" });
 
   const [form, setForm] = useState({
     title:"", description:"", category:"Other", priority:"Medium",
   });
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
-
   const fetchComplaints = async () => {
-    const { showToast } = useToast();
     try {
       const token = localStorage.getItem("token");
       const res   = await axios.get(`${API}/complaints/my`, {
@@ -605,10 +588,10 @@ function Complaints() {
         {/* ── Stats ── */}
         <div className="cp-stats">
           {[
-            { icon:"⚑", val:stats.total,      lbl:"Total",       sub:"All complaints",  bar:"linear-gradient(90deg,#6366f1,#818cf8)", bg:"⚑" },
-            { icon:"⏳", val:stats.pending,    lbl:"Pending",     sub:"Awaiting review", bar:"linear-gradient(90deg,#f59e0b,#fbbf24)", bg:"⏳" },
-            { icon:"🛠", val:stats.inProgress, lbl:"In Progress", sub:"Being handled",   bar:"linear-gradient(90deg,#f97316,#fb923c)", bg:"🛠" },
-            { icon:"✅", val:stats.resolved,   lbl:"Resolved",    sub:"Issues closed",   bar:"linear-gradient(90deg,#10b981,#34d399)", bg:"✅" },
+            { val:stats.total,      lbl:"Total",       sub:"All complaints",  bar:"linear-gradient(90deg,#6366f1,#818cf8)", bg:"⚑" },
+            { val:stats.pending,    lbl:"Pending",     sub:"Awaiting review", bar:"linear-gradient(90deg,#f59e0b,#fbbf24)", bg:"⏳" },
+            { val:stats.inProgress, lbl:"In Progress", sub:"Being handled",   bar:"linear-gradient(90deg,#f97316,#fb923c)", bg:"🛠" },
+            { val:stats.resolved,   lbl:"Resolved",    sub:"Issues closed",   bar:"linear-gradient(90deg,#10b981,#34d399)", bg:"✅" },
           ].map((s, i) => (
             <div key={i} className="cp-stat">
               <div className="cp-stat-bg">{s.bg}</div>
@@ -797,11 +780,6 @@ function Complaints() {
           </div>
         </div>
       </div>
-
-      {/* Toast */}
-      {toast && (
-        <div className={`cp-toast ${toast.type}`}>{toast.msg}</div>
-      )}
     </Layout>
   );
 }
