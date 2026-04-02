@@ -17,6 +17,8 @@ import Complaints from "./pages/student/Complaints.jsx";
 import ManageComplaints from "./pages/admin/ManageComplaints.jsx";
 import Leave from "./pages/student/Leave.jsx";
 import ManageLeave from "./pages/admin/ManageLeave.jsx";
+import Visitors from "./pages/student/Visitors.jsx";
+import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
 
 
 
@@ -54,6 +56,8 @@ function App() {
         <Route path="/admin/complaints" element={<ManageComplaints />} />
         <Route path="/leave" element={<Leave />} />
         <Route path="/admin/leaves" element={<ManageLeave />} />
+        <Route path="/visitors" element={<Visitors />} />
+        <Route path="/admin/visitors" element={<ManageVisitors />} />
       </Routes>
 
       <Footer />

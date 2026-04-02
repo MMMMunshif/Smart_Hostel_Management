@@ -41,6 +41,7 @@ const roomRoutes    = require("./routes/roomRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
+const visitorRoutes = require("./routes/visitorRoutes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/matches", matchRoutes);
@@ -48,6 +49,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/leaves", leaveRoutes);
+app.use("/api/visitors", visitorRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
