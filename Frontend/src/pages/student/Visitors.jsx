@@ -6,8 +6,7 @@ import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .visitors-root {
@@ -57,7 +56,7 @@ const STYLES = `
   .page-title-block {}
 
   .page-eyebrow {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.2em;
@@ -79,7 +78,7 @@ const STYLES = `
   }
 
   .page-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 36px;
     font-weight: 800;
     color: #f0f2ff;
@@ -113,7 +112,7 @@ const STYLES = `
   }
 
   .stat-pill b {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 15px;
     font-weight: 700;
     color: #e8eaf2;
@@ -157,12 +156,12 @@ const STYLES = `
     text-transform: uppercase;
     color: #4b5563;
     font-weight: 600;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     margin-bottom: 4px;
   }
 
   .card-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 18px;
     font-weight: 700;
     color: #f0f2ff;
@@ -246,7 +245,7 @@ const STYLES = `
     border: none;
     border-radius: 12px;
     color: #fff;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -349,7 +348,7 @@ const STYLES = `
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 16px;
     font-weight: 800;
     flex-shrink: 0;
@@ -359,7 +358,7 @@ const STYLES = `
   .visitor-info { min-width: 0; }
 
   .visitor-name {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 15px;
     font-weight: 700;
     color: #f0f2ff;
@@ -399,7 +398,7 @@ const STYLES = `
     border-radius: 100px;
     font-size: 11px;
     font-weight: 700;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -410,7 +409,7 @@ const STYLES = `
   .badge-pending  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
 
   .time-range {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 12px;
     color: #475569;
     font-weight: 600;
@@ -432,7 +431,7 @@ const STYLES = `
   }
 
   .empty-text {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 15px;
     font-weight: 600;
     color: #4b5563;
@@ -474,7 +473,7 @@ const STYLES = `
     color: #818cf8;
     font-size: 11px;
     font-weight: 600;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     padding: 2px 9px;
     border-radius: 6px;
     white-space: nowrap;

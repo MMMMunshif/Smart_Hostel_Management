@@ -6,8 +6,7 @@ import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
   .mn-root {
     font-family: 'DM Sans', sans-serif !important;
     background: #f0f4f8;
@@ -27,7 +26,7 @@ const css = `
   .mn-root .mn-title, .mn-root .mn-card-title,
   .mn-root .mn-item-title, .mn-root .mn-stat-value,
   .mn-root .mn-feed-title {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
   }
 
   .mn-shell {
@@ -84,7 +83,7 @@ const css = `
   }
 
   .mn-title {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 2.2rem;
     font-weight: 800;
     line-height: 1.05;
@@ -110,7 +109,7 @@ const css = `
   }
 
   .mn-hero-badge-num {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 2.4rem;
     font-weight: 800;
     color: #58e4de;
@@ -161,7 +160,7 @@ const css = `
   }
 
   .mn-stat-value {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 1.9rem;
     font-weight: 800;
     color: #0f172a;
@@ -211,7 +210,7 @@ const css = `
   }
 
   .mn-card-title {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 1.15rem;
     font-weight: 800;
     color: #0f172a;
@@ -474,7 +473,7 @@ const css = `
   }
 
   .mn-item-title {
-    font-family: 'Syne', sans-serif !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 1.05rem;
     font-weight: 700;
     color: #0f172a;

@@ -6,8 +6,7 @@ import { useToast } from "../../context/ToastContext";
 const API = "http://localhost:5000/api";
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
   .sp-root {
     font-family: 'DM Sans', sans-serif;
     background: #f0f2f7;
@@ -55,14 +54,14 @@ const css = `
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.45rem;
     font-weight: 800;
     margin-bottom: 12px;
   }
 
   .sp-name {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
     line-height: 1.15;
@@ -175,7 +174,7 @@ const css = `
   }
 
   .sp-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 2rem;
     line-height: 1.02;
     font-weight: 800;
@@ -248,7 +247,7 @@ const css = `
   }
 
   .sp-section-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.08rem;
     font-weight: 800;
     margin-bottom: 4px;
@@ -369,7 +368,7 @@ const css = `
   }
 
   .cta-title {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.3rem;
     font-weight: 800;
     color: #083234;
