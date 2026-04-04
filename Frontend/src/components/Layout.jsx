@@ -372,7 +372,7 @@ const STUDENT_NAV = [
     section: "Matching",
     items: [
       { icon: "✦", label: "Suggested", path: "/matching" },
-      { icon: "☰", label: "Requests", path: "/requests" },
+      { icon: "☰", label: "Roommate Requests", path: "/roommate-requests" },
     ],
   },
   {

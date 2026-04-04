@@ -15,6 +15,7 @@ import Complaints from "./pages/student/Complaints.jsx";
 import Leave from "./pages/student/Leave.jsx";
 import Visitors from "./pages/student/Visitors.jsx";
 import Notices from "./pages/student/Notices.jsx";
+import RoommateRequests from "./pages/student/RoommateRequests.jsx";
 
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
@@ -127,6 +128,15 @@ function App() {
   element={
     <ProtectedRoute role="student">
       <Notices />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/roommate-requests"
+  element={
+    <ProtectedRoute role="student">
+      <RoommateRequests />
     </ProtectedRoute>
   }
 />

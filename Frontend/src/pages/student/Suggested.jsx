@@ -7,6 +7,7 @@ const API = "http://localhost:5000/api";
 
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
+
   .sg-root {
     font-family: 'DM Sans', sans-serif;
     background: #f0f2f7;
@@ -14,7 +15,6 @@ const css = `
     padding: 32px;
     color: #0f1117;
   }
-
   .sg-header {
     display: flex;
     justify-content: space-between;
@@ -23,7 +23,6 @@ const css = `
     margin-bottom: 22px;
     flex-wrap: wrap;
   }
-
   .sg-breadcrumb {
     display: flex;
     align-items: center;
@@ -32,12 +31,10 @@ const css = `
     color: #9aa0b0;
     margin-bottom: 6px;
   }
-
   .sg-breadcrumb span {
     color: #00c4b8;
     font-weight: 600;
   }
-
   .sg-header h1 {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 2rem;
@@ -47,14 +44,12 @@ const css = `
     margin-bottom: 6px;
     color: #10131a;
   }
-
   .sg-header p {
     font-size: 0.9rem;
     color: #7f8899;
     max-width: 720px;
     line-height: 1.55;
   }
-
   .smart-box {
     background: linear-gradient(135deg, #e8fcfb, #dff7f4);
     border: 1px solid #d3f3ef;
@@ -63,7 +58,6 @@ const css = `
     min-width: 210px;
     box-shadow: 0 8px 20px rgba(0, 212, 200, .08);
   }
-
   .smart-label {
     font-size: 0.7rem;
     font-weight: 800;
@@ -71,20 +65,17 @@ const css = `
     color: #00a99f;
     margin-bottom: 6px;
   }
-
   .smart-value {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
     color: #0f1117;
   }
-
   .smart-sub {
     margin-top: 3px;
     font-size: 0.75rem;
     color: #8090a0;
   }
-
   .sg-filter-wrap {
     background: #fff;
     border: 1px solid #e9edf5;
@@ -95,7 +86,6 @@ const css = `
     gap: 12px;
     margin-bottom: 22px;
   }
-
   .search-box {
     display: flex;
     align-items: center;
@@ -105,7 +95,6 @@ const css = `
     padding: 11px 13px;
     background: #fff;
   }
-
   .search-box input {
     border: none;
     outline: none;
@@ -115,11 +104,6 @@ const css = `
     width: 100%;
     color: #111827;
   }
-
-  .search-box input::placeholder {
-    color: #b1b8c5;
-  }
-
   .filter-select {
     border: 1.5px solid #e8ebf2;
     border-radius: 12px;
@@ -130,7 +114,6 @@ const css = `
     color: #4a5262;
     outline: none;
   }
-
   .reset-btn {
     border: none;
     border-radius: 12px;
@@ -140,19 +123,12 @@ const css = `
     font-size: 0.82rem;
     font-weight: 800;
     cursor: pointer;
-    transition: .18s ease;
   }
-
-  .reset-btn:hover {
-    background: #e9fbf9;
-  }
-
   .sg-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 18px;
   }
-
   .match-card {
     background: #fff;
     border: 1px solid #e9edf5;
@@ -160,17 +136,14 @@ const css = `
     overflow: hidden;
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
-
   .match-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 16px 34px rgba(17, 24, 39, .08);
     border-color: #d8f2ef;
   }
-
   .match-top {
     padding: 18px 18px 14px;
   }
-
   .match-user-row {
     display: flex;
     align-items: flex-start;
@@ -178,13 +151,11 @@ const css = `
     gap: 12px;
     margin-bottom: 14px;
   }
-
   .match-user-main {
     display: flex;
     gap: 12px;
     min-width: 0;
   }
-
   .avatar {
     width: 52px;
     height: 52px;
@@ -198,7 +169,6 @@ const css = `
     font-size: 0.95rem;
     flex-shrink: 0;
   }
-
   .user-name {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.02rem;
@@ -207,21 +177,11 @@ const css = `
     color: #0f1117;
     margin-bottom: 4px;
   }
-
   .user-meta {
     font-size: 0.76rem;
     color: #7d8797;
     line-height: 1.45;
   }
-
-  .more-btn {
-    border: none;
-    background: transparent;
-    color: #98a1b2;
-    font-size: 1.1rem;
-    cursor: pointer;
-  }
-
   .compat-box {
     background: #f7fafb;
     border: 1px solid #eef2f6;
@@ -229,7 +189,6 @@ const css = `
     padding: 10px 12px;
     margin-bottom: 12px;
   }
-
   .compat-top {
     display: flex;
     justify-content: space-between;
@@ -237,46 +196,39 @@ const css = `
     gap: 8px;
     margin-bottom: 7px;
   }
-
   .compat-label {
     font-size: 0.66rem;
     font-weight: 800;
     letter-spacing: 0.11em;
     color: #8992a3;
   }
-
   .compat-score {
     font-size: 0.76rem;
     font-weight: 800;
     color: #1c2230;
   }
-
   .compat-score strong {
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1rem;
     color: #00c4b8;
   }
-
   .compat-track {
     height: 6px;
     background: #e9eff3;
     border-radius: 999px;
     overflow: hidden;
   }
-
   .compat-fill {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #00d4c8, #80e7e0);
   }
-
   .tag-row {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
     margin-bottom: 14px;
   }
-
   .tag {
     font-size: 0.68rem;
     font-weight: 700;
@@ -286,7 +238,6 @@ const css = `
     color: #5e6878;
     border: 1px solid #edf1f6;
   }
-
   .metrics {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -294,11 +245,6 @@ const css = `
     padding-top: 10px;
     border-top: 1px solid #eff3f7;
   }
-
-  .metric {
-    min-width: 0;
-  }
-
   .metric-label {
     font-size: 0.62rem;
     font-weight: 800;
@@ -306,21 +252,18 @@ const css = `
     color: #a0a8b6;
     margin-bottom: 4px;
   }
-
   .metric-value {
     font-size: 0.78rem;
     font-weight: 700;
     color: #283041;
     line-height: 1.4;
   }
-
   .match-bottom {
     padding: 14px 18px 18px;
     border-top: 1px solid #f0f3f7;
     display: flex;
     gap: 10px;
   }
-
   .btn-outline {
     flex: 1;
     border: 1.5px solid #e4e9f0;
@@ -332,15 +275,7 @@ const css = `
     font-size: 0.8rem;
     font-weight: 800;
     cursor: pointer;
-    transition: .18s ease;
   }
-
-  .btn-outline:hover {
-    border-color: #cfe8e5;
-    color: #00a99f;
-    background: #f8fffe;
-  }
-
   .btn-primary {
     flex: 1;
     border: none;
@@ -352,13 +287,11 @@ const css = `
     font-size: 0.8rem;
     font-weight: 800;
     cursor: pointer;
-    transition: .18s ease;
   }
-
-  .btn-primary:hover {
-    filter: brightness(.98);
+  .btn-primary:disabled {
+    opacity: .6;
+    cursor: not-allowed;
   }
-
   .state-box {
     grid-column: 1 / -1;
     text-align: center;
@@ -370,77 +303,18 @@ const css = `
     font-size: 0.95rem;
   }
 
-  .cta-strip {
-    margin-top: 24px;
-    background: #fff;
-    border: 1px solid #e9edf5;
-    border-radius: 18px;
-    padding: 18px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-
-  .cta-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 800;
-    color: #111827;
-    margin-bottom: 3px;
-  }
-
-  .cta-sub {
-    font-size: 0.82rem;
-    color: #7f8899;
-  }
-
-  .cta-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .cta-ghost {
-    padding: 10px 16px;
-    border-radius: 12px;
-    border: 1.5px solid #e6ebf2;
-    background: #fff;
-    color: #4c5565;
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  .cta-solid {
-    padding: 10px 16px;
-    border-radius: 12px;
-    border: none;
-    background: #f5cc6d;
-    color: #5d4714;
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
   @media (max-width: 1180px) {
     .sg-filter-wrap {
       grid-template-columns: 1fr 1fr;
     }
   }
-
   @media (max-width: 760px) {
     .sg-root {
       padding: 16px;
     }
-
     .sg-filter-wrap {
       grid-template-columns: 1fr;
     }
-
     .sg-grid {
       grid-template-columns: 1fr;
     }
@@ -448,12 +322,7 @@ const css = `
 `;
 
 function initials(name = "Student") {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
 function prettySleep(value) {
@@ -482,8 +351,11 @@ function prettySmoking(value) {
 }
 
 function Suggested() {
+  const { showToast } = useToast();
+
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sendingId, setSendingId] = useState("");
 
   const [search, setSearch] = useState("");
   const [sleepFilter, setSleepFilter] = useState("all");
@@ -500,30 +372,53 @@ function Suggested() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(`${API}/matches/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setMatches(Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     } catch (err) {
       console.error(err);
+      showToast("Failed to load matches", "error");
       setLoading(false);
+    }
+  };
+
+  const sendRoommateRequest = async (toStudentId, name) => {
+    try {
+      setSendingId(toStudentId);
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${API}/roommate-requests`,
+        {
+          toStudent: toStudentId,
+          message: "Hi, I’d like to connect as a potential roommate.",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      showToast(`Roommate request sent to ${name}`, "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to send roommate request", "error");
+    } finally {
+      setSendingId("");
     }
   };
 
   const filteredMatches = useMemo(() => {
     return matches.filter((m) => {
       const prefs = m.preferences || {};
+      const q = search.toLowerCase();
 
-      const searchValue = search.toLowerCase();
       const searchMatch =
-        !searchValue ||
-        m.name?.toLowerCase().includes(searchValue) ||
-        m.email?.toLowerCase().includes(searchValue) ||
-        m.meta?.toLowerCase().includes(searchValue) ||
-        m.reasons?.some((r) => r.toLowerCase().includes(searchValue));
+        !q ||
+        m.name?.toLowerCase().includes(q) ||
+        m.email?.toLowerCase().includes(q) ||
+        m.meta?.toLowerCase().includes(q) ||
+        m.reasons?.some((r) => r.toLowerCase().includes(q));
 
       const sleepMatch = sleepFilter === "all" || prefs.sleep === sleepFilter;
       const studyMatch = studyFilter === "all" || prefs.study === studyFilter;
@@ -539,14 +434,6 @@ function Suggested() {
     });
   }, [matches, search, sleepFilter, studyFilter, smokingFilter, scoreFilter]);
 
-  const resetFilters = () => {
-    setSearch("");
-    setSleepFilter("all");
-    setStudyFilter("all");
-    setSmokingFilter("all");
-    setScoreFilter("all");
-  };
-
   return (
     <Layout role="student">
       <style>{css}</style>
@@ -558,10 +445,7 @@ function Suggested() {
               Dashboard › Student › <span>Suggested</span>
             </div>
             <h1>Suggested Roommates</h1>
-            <p>
-              Based on your sleep schedule, study habits, smoking preference,
-              noise level, and cleanliness, we found the most compatible students for your next semester.
-            </p>
+            <p>These matches are based on your lifestyle preferences and compatibility score.</p>
           </div>
 
           <div className="smart-box">
@@ -575,66 +459,44 @@ function Suggested() {
           <div className="search-box">
             <span style={{ color: "#b0b8c5" }}>🔍</span>
             <input
-              placeholder="Search by name, email, or match reason..."
+              placeholder="Search by name, email, or reason..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <select
-            className="filter-select"
-            value={sleepFilter}
-            onChange={(e) => setSleepFilter(e.target.value)}
-          >
+          <select className="filter-select" value={sleepFilter} onChange={(e) => setSleepFilter(e.target.value)}>
             <option value="all">All Sleep Types</option>
             <option value="early">Early Bird</option>
             <option value="late">Night Owl</option>
           </select>
 
-          <select
-            className="filter-select"
-            value={studyFilter}
-            onChange={(e) => setStudyFilter(e.target.value)}
-          >
+          <select className="filter-select" value={studyFilter} onChange={(e) => setStudyFilter(e.target.value)}>
             <option value="all">All Study Styles</option>
             <option value="silent">Quiet Study</option>
             <option value="group">Group Study</option>
           </select>
 
-          <select
-            className="filter-select"
-            value={smokingFilter}
-            onChange={(e) => setSmokingFilter(e.target.value)}
-          >
-            <option value="all">All Smoking Prefs</option>
+          <select className="filter-select" value={smokingFilter} onChange={(e) => setSmokingFilter(e.target.value)}>
+            <option value="all">All Smoking</option>
             <option value="no">Non-smoker</option>
             <option value="yes">Smoker</option>
           </select>
 
-          <select
-            className="filter-select"
-            value={scoreFilter}
-            onChange={(e) => setScoreFilter(e.target.value)}
-          >
+          <select className="filter-select" value={scoreFilter} onChange={(e) => setScoreFilter(e.target.value)}>
             <option value="all">All Scores</option>
             <option value="90">90% and above</option>
             <option value="80">80% and above</option>
             <option value="70">70% and above</option>
             <option value="60">60% and above</option>
           </select>
-
-          <button className="reset-btn" onClick={resetFilters}>
-            Reset Filters
-          </button>
         </div>
 
         <div className="sg-grid">
-          {loading && (
-            <div className="state-box">Loading suggested roommates...</div>
-          )}
+          {loading && <div className="state-box">Loading suggested roommates...</div>}
 
           {!loading && filteredMatches.length === 0 && (
-            <div className="state-box">No compatible roommates found for the selected filters.</div>
+            <div className="state-box">No compatible roommates found.</div>
           )}
 
           {!loading &&
@@ -647,7 +509,7 @@ function Suggested() {
                     <div className="match-user-row">
                       <div className="match-user-main">
                         <div className="avatar">{initials(match.name)}</div>
-                        <div style={{ minWidth: 0 }}>
+                        <div>
                           <div className="user-name">{match.name}</div>
                           <div className="user-meta">
                             {match.meta || "Student lifestyle"}
@@ -656,8 +518,6 @@ function Suggested() {
                           </div>
                         </div>
                       </div>
-
-                      <button className="more-btn">⋯</button>
                     </div>
 
                     <div className="compat-box">
@@ -667,17 +527,13 @@ function Suggested() {
                           <strong>{match.score}%</strong> Match
                         </div>
                       </div>
-
                       <div className="compat-track">
-                        <div
-                          className="compat-fill"
-                          style={{ width: `${match.score}%` }}
-                        />
+                        <div className="compat-fill" style={{ width: `${match.score}%` }} />
                       </div>
                     </div>
 
                     <div className="tag-row">
-                      {(match.reasons || []).length > 0 ? (
+                      {(match.reasons || []).length ? (
                         match.reasons.map((reason, i) => (
                           <span className="tag" key={i}>{reason}</span>
                         ))
@@ -687,22 +543,19 @@ function Suggested() {
                     </div>
 
                     <div className="metrics">
-                      <div className="metric">
-                        <div className="metric-label">SLEEP PATTERN</div>
+                      <div>
+                        <div className="metric-label">SLEEP</div>
                         <div className="metric-value">{prettySleep(prefs.sleep)}</div>
                       </div>
-
-                      <div className="metric">
-                        <div className="metric-label">NOISE LEVEL</div>
+                      <div>
+                        <div className="metric-label">NOISE</div>
                         <div className="metric-value">{prettyNoise(prefs.noise)}</div>
                       </div>
-
-                      <div className="metric">
-                        <div className="metric-label">STUDY STYLE</div>
+                      <div>
+                        <div className="metric-label">STUDY</div>
                         <div className="metric-value">{prettyStudy(prefs.study)}</div>
                       </div>
-
-                      <div className="metric">
+                      <div>
                         <div className="metric-label">SMOKING</div>
                         <div className="metric-value">{prettySmoking(prefs.smoking)}</div>
                       </div>
@@ -710,47 +563,21 @@ function Suggested() {
                   </div>
 
                   <div className="match-bottom">
-                    <button
-                      className="btn-outline"
-                      onClick={() => alert(`Profile preview for ${match.name}`)}
-                    >
+                    <button className="btn-outline" onClick={() => (window.location.href = "/profile")}>
                       ↗ Profile
                     </button>
 
                     <button
                       className="btn-primary"
-                      onClick={() => alert(`Roommate request sent to ${match.name}`)}
+                      disabled={sendingId === match._id}
+                      onClick={() => sendRoommateRequest(match._id, match.name)}
                     >
-                      ✦ Request
+                      {sendingId === match._id ? "Sending..." : "✦ Request"}
                     </button>
                   </div>
                 </div>
               );
             })}
-        </div>
-
-        <div className="cta-strip">
-          <div>
-            <div className="cta-title">Not finding what you're looking for?</div>
-            <div className="cta-sub">
-              Try broadening your filters or check room listings before sending roommate requests.
-            </div>
-          </div>
-
-          <div className="cta-actions">
-            <button
-              className="cta-ghost"
-              onClick={() => (window.location.href = "/rooms")}
-            >
-              Browse Rooms
-            </button>
-            <button
-              className="cta-solid"
-              onClick={() => (window.location.href = "/requests")}
-            >
-              Check Requests
-            </button>
-          </div>
         </div>
       </div>
     </Layout>
