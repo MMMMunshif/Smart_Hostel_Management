@@ -16,6 +16,8 @@ import Leave from "./pages/student/Leave.jsx";
 import Visitors from "./pages/student/Visitors.jsx";
 import Notices from "./pages/student/Notices.jsx";
 import RoommateRequests from "./pages/student/RoommateRequests.jsx";
+import MyRoom from "./pages/student/MyRoom.jsx";
+import RoomChangeRequests from "./pages/student/RoomChangeRequests.jsx";
 
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
@@ -26,6 +28,9 @@ import ManageComplaints from "./pages/admin/ManageComplaints.jsx";
 import ManageLeave from "./pages/admin/ManageLeave.jsx";
 import ManageNotices from "./pages/admin/ManageNotices.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
+import RoommatePairs from "./pages/admin/RoommatePairs.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
+import ManageRoomChangeRequests from "./pages/admin/ManageRoomChangeRequests.jsx";
 
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
@@ -141,6 +146,26 @@ function App() {
   }
 />
 
+<Route
+  path="/my-room"
+  element={
+    <ProtectedRoute role="student">
+      <MyRoom />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/room-change-requests"
+  element={
+    <ProtectedRoute role="student">
+      <RoomChangeRequests />
+    </ProtectedRoute>
+  }
+/>
+
+
+
         {/* ADMIN */}
         <Route
           path="/admin/dashboard"
@@ -219,6 +244,33 @@ function App() {
   element={
     <ProtectedRoute role="admin">
       <ManageNotices />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/roommate-pairs"
+  element={
+    <ProtectedRoute role="admin">
+      <RoommatePairs />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/analytics"
+  element={
+    <ProtectedRoute role="admin">
+      <AdminAnalytics />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/room-change-requests"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageRoomChangeRequests />
     </ProtectedRoute>
   }
 />

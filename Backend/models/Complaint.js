@@ -51,6 +51,11 @@ const complaintSchema = new mongoose.Schema(
       enum: ["Pending", "In Progress", "Resolved"],
       default: "Pending",
     },
+
+    image: {
+  type: String,
+  default: "",
+},
   },
   { timestamps: true }
 );

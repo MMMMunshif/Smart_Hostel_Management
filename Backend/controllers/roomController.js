@@ -65,3 +65,20 @@ exports.removeStudentFromRoom = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// GET MY ROOM (STUDENT)
+exports.getMyRoom = async (req, res) => {
+  try {
+    const room = await Room.findOne({
+      occupants: req.user._id,
+    }).populate("occupants", "name email");
+
+    if (!room) {
+      return res.status(404).json({ message: "No room assigned yet" });
+    }
+
+    res.json(room);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

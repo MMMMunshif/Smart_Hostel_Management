@@ -1,4 +1,5 @@
 const RoommateRequest = require("../models/RoommateRequest");
+const Room = require("../models/Room");
 const { createNotification } = require("./notificationController");
 
 // STUDENT: send roommate request
@@ -119,3 +120,99 @@ exports.updateRoommateRequestStatus = async (req, res) => {
   }
 };
 
+// ADMIN: get all roommate requests
+exports.getAllRoommateRequests = async (req, res) => {
+  try {
+    const requests = await RoommateRequest.find()
+      .populate("fromStudent", "name email")
+      .populate("toStudent", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ADMIN: allocate accepted pair to room
+exports.allocateAcceptedPairToRoom = async (req, res) => {
+  try {
+    const { roomId } = req.body;
+
+    if (!roomId) {
+      return res.status(400).json({ message: "roomId is required" });
+    }
+
+    const request = await RoommateRequest.findById(req.params.id)
+      .populate("fromStudent", "name email")
+      .populate("toStudent", "name email");
+
+    if (!request) {
+      return res.status(404).json({ message: "Roommate request not found" });
+    }
+
+    if (request.status !== "Accepted") {
+      return res.status(400).json({ message: "Only accepted roommate pairs can be allocated" });
+    }
+
+    const room = await Room.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    const studentIds = [
+      request.fromStudent._id.toString(),
+      request.toStudent._id.toString(),
+    ];
+
+    const currentOccupants = (room.occupants || []).map((id) => id.toString());
+
+    const alreadyInRoomCount = studentIds.filter((id) => currentOccupants.includes(id)).length;
+    const newStudentsNeeded = studentIds.length - alreadyInRoomCount;
+    const availableSlots = Number(room.capacity || 0) - currentOccupants.length;
+
+    if (availableSlots < newStudentsNeeded) {
+      return res.status(400).json({
+        message: "Selected room does not have enough available slots for this pair",
+      });
+    }
+
+    studentIds.forEach((studentId) => {
+      if (!currentOccupants.includes(studentId)) {
+        room.occupants.push(studentId);
+      }
+    });
+
+    if (room.occupants.length >= room.capacity) {
+      room.status = "Full";
+    } else {
+      room.status = "Available";
+    }
+
+    await room.save();
+
+    await createNotification({
+      user: request.fromStudent._id,
+      title: "Room Allocation Confirmed",
+      message: `You and ${request.toStudent.name} have been assigned to room ${room.roomNumber}.`,
+      type: "request",
+      link: "/rooms",
+    });
+
+    await createNotification({
+      user: request.toStudent._id,
+      title: "Room Allocation Confirmed",
+      message: `You and ${request.fromStudent.name} have been assigned to room ${room.roomNumber}.`,
+      type: "request",
+      link: "/rooms",
+    });
+
+    res.json({
+      message: "Accepted roommate pair allocated successfully",
+      room,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -45,6 +45,7 @@ const visitorRoutes = require("./routes/visitorRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const noticeRoutes = require("./routes/noticeRoutes");
 const roommateRequestRoutes = require("./routes/roommateRequestRoutes");
+const roomChangeRequestRoutes = require("./routes/roomChangeRequestRoutes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/matches", matchRoutes);
@@ -56,7 +57,7 @@ app.use("/api/visitors", visitorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/notices", noticeRoutes);
 app.use("/api/roommate-requests", roommateRequestRoutes);
-
+app.use("/api/room-change-requests", roomChangeRequestRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

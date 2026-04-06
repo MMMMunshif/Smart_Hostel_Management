@@ -18,7 +18,6 @@ const css = `
     position: relative;
   }
 
-  /* Decorative background blobs */
   .lv-root::before {
     content: '';
     position: fixed; top: -100px; right: -100px;
@@ -162,8 +161,21 @@ const css = `
     border-color: #00c4b4;
     background: rgba(255,255,255,.09);
   }
+  /* Validation error state */
+  .lv-field-input.field-error, .lv-field-textarea.field-error {
+    border-color: #f43f5e !important;
+    background: rgba(244,63,94,.08) !important;
+  }
   .lv-field-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor: pointer; }
   .lv-field-textarea { resize: none; min-height: 80px; }
+
+  /* Field error message */
+  .lv-field-error {
+    font-size: 0.68rem; color: #f43f5e; font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+    animation: fadeIn .2s ease;
+    position: relative; z-index: 1;
+  }
 
   .lv-date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
 
@@ -370,18 +382,67 @@ const daysBetween = (from, to) => {
 const fmtDate = (d) =>
   new Date(d).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
 
-function Leave() {
-  const [leaves, setLeaves]           = useState([]);
-  const [form, setForm]               = useState({ reason:"", fromDate:"", toDate:"" });
-  const [loading, setLoading]         = useState(true);
-  const [submitting, setSubmitting]   = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [toast, setToast]             = useState(null);
+// ── Validation helpers ──────────────────────────────────────────────────────
+const REASON_MIN = 10;
+const REASON_MAX = 300;
+const MAX_LEAVE_DAYS = 30;
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+const validate = (form) => {
+  const errors = {};
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Reason
+  const reason = form.reason.trim();
+  if (!reason) {
+    errors.reason = "Reason is required.";
+  } else if (reason.length < REASON_MIN) {
+    errors.reason = `Reason must be at least ${REASON_MIN} characters.`;
+  } else if (reason.length > REASON_MAX) {
+    errors.reason = `Reason must be under ${REASON_MAX} characters.`;
+  }
+
+  // From Date
+  if (!form.fromDate) {
+    errors.fromDate = "Start date is required.";
+  } else {
+    const from = new Date(form.fromDate);
+    if (from < today) {
+      errors.fromDate = "Start date cannot be in the past.";
+    }
+  }
+
+  // To Date
+  if (!form.toDate) {
+    errors.toDate = "End date is required.";
+  } else if (form.fromDate) {
+    const from = new Date(form.fromDate);
+    const to   = new Date(form.toDate);
+    if (to < from) {
+      errors.toDate = "End date must be on or after start date.";
+    } else {
+      const days = daysBetween(form.fromDate, form.toDate);
+      if (days > MAX_LEAVE_DAYS) {
+        errors.toDate = `Leave cannot exceed ${MAX_LEAVE_DAYS} days.`;
+      }
+    }
+  }
+
+  return errors;
+};
+// ───────────────────────────────────────────────────────────────────────────
+
+function Leave() {
+  // ✅ useToast called at the top level — fixes the Rules of Hooks violation
+  const { showToast } = useToast();
+
+  const [leaves, setLeaves]             = useState([]);
+  const [form, setForm]                 = useState({ reason: "", fromDate: "", toDate: "" });
+  const [errors, setErrors]             = useState({});
+  const [touched, setTouched]           = useState({});
+  const [loading, setLoading]           = useState(true);
+  const [submitting, setSubmitting]     = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchLeaves = async () => {
     try {
@@ -392,6 +453,7 @@ function Leave() {
       setLeaves(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      showToast("Failed to load leave requests.", "error");
     } finally {
       setLoading(false);
     }
@@ -399,18 +461,45 @@ function Leave() {
 
   useEffect(() => { fetchLeaves(); }, []);
 
+  // Live validation on every form change
+  const handleChange = (field, value) => {
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+    // Re-validate only touched fields so errors don't flash on first load
+    if (touched[field]) {
+      setErrors(validate(updated));
+    }
+  };
+
+  // Mark field as touched on blur so inline errors appear after interaction
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    setErrors(validate(form));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.reason || !form.fromDate || !form.toDate) return;
+
+    // Touch all fields to show every error at once
+    setTouched({ reason: true, fromDate: true, toDate: true });
+    const validationErrors = validate(form);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      showToast("Please fix the errors before submitting.", "error");
+      return;
+    }
+
     setSubmitting(true);
-    const { showToast } = useToast();
     try {
       const token = localStorage.getItem("token");
       await axios.post(`${API}/leaves`, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       showToast("Leave request submitted ✅");
-      setForm({ reason:"", fromDate:"", toDate:"" });
+      setForm({ reason: "", fromDate: "", toDate: "" });
+      setErrors({});
+      setTouched({});
       fetchLeaves();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to submit ❌", "error");
@@ -476,40 +565,73 @@ function Leave() {
             <div className="lv-form-title">Apply for Leave</div>
             <div className="lv-form-sub">Submit your leave request below</div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
+
+              {/* Reason */}
               <div className="lv-field">
-                <label className="lv-field-label">Reason for Leave</label>
+                <label className="lv-field-label">
+                  Reason for Leave
+                  <span style={{ color: "#f43f5e", marginLeft: 3 }}>*</span>
+                </label>
                 <textarea
-                  className="lv-field-textarea"
-                  placeholder="Describe your reason (family visit, medical, etc.)"
+                  className={`lv-field-textarea ${touched.reason && errors.reason ? "field-error" : ""}`}
+                  placeholder={`Describe your reason (min ${REASON_MIN} characters)`}
                   value={form.reason}
-                  onChange={e => setForm({...form, reason: e.target.value})}
+                  onChange={e => handleChange("reason", e.target.value)}
+                  onBlur={() => handleBlur("reason")}
+                  maxLength={REASON_MAX + 1}
                   required
                 />
+                {/* Character count */}
+                <span style={{ fontSize: "0.65rem", color: form.reason.length > REASON_MAX ? "#f43f5e" : "#5a5650", textAlign: "right", position: "relative", zIndex: 1 }}>
+                  {form.reason.trim().length}/{REASON_MAX}
+                </span>
+                {touched.reason && errors.reason && (
+                  <span className="lv-field-error">⚠ {errors.reason}</span>
+                )}
               </div>
 
+              {/* Dates */}
               <div className="lv-date-row">
                 <div className="lv-field">
-                  <label className="lv-field-label">From Date</label>
+                  <label className="lv-field-label">
+                    From Date <span style={{ color: "#f43f5e" }}>*</span>
+                  </label>
                   <input
-                    type="date" className="lv-field-input"
-                    value={form.fromDate} min={today}
-                    onChange={e => setForm({...form, fromDate: e.target.value})}
+                    type="date"
+                    className={`lv-field-input ${touched.fromDate && errors.fromDate ? "field-error" : ""}`}
+                    value={form.fromDate}
+                    min={today}
+                    onChange={e => handleChange("fromDate", e.target.value)}
+                    onBlur={() => handleBlur("fromDate")}
                     required
                   />
+                  {touched.fromDate && errors.fromDate && (
+                    <span className="lv-field-error">⚠ {errors.fromDate}</span>
+                  )}
                 </div>
+
                 <div className="lv-field">
-                  <label className="lv-field-label">To Date</label>
+                  <label className="lv-field-label">
+                    To Date <span style={{ color: "#f43f5e" }}>*</span>
+                  </label>
                   <input
-                    type="date" className="lv-field-input"
-                    value={form.toDate} min={form.fromDate || today}
-                    onChange={e => setForm({...form, toDate: e.target.value})}
+                    type="date"
+                    className={`lv-field-input ${touched.toDate && errors.toDate ? "field-error" : ""}`}
+                    value={form.toDate}
+                    min={form.fromDate || today}
+                    onChange={e => handleChange("toDate", e.target.value)}
+                    onBlur={() => handleBlur("toDate")}
                     required
                   />
+                  {touched.toDate && errors.toDate && (
+                    <span className="lv-field-error">⚠ {errors.toDate}</span>
+                  )}
                 </div>
               </div>
 
-              {previewDays && (
+              {/* Duration preview — only show when valid */}
+              {previewDays && !errors.fromDate && !errors.toDate && (
                 <div className="lv-duration">
                   <div className="lv-duration-dot" />
                   <div className="lv-duration-text">
@@ -545,12 +667,10 @@ function Leave() {
             {/* List */}
             <div className="lv-list">
 
-              {/* Loading skeletons */}
               {loading && [1,2,3].map(i => (
                 <div key={i} style={{ height: 110, borderRadius: 18 }} className="lv-skeleton" />
               ))}
 
-              {/* Empty */}
               {!loading && filtered.length === 0 && (
                 <div className="lv-empty">
                   <div className="lv-empty-icon">✈</div>
@@ -563,7 +683,6 @@ function Leave() {
                 </div>
               )}
 
-              {/* Cards */}
               {!loading && filtered.map((l, i) => {
                 const days = daysBetween(l.fromDate, l.toDate);
                 return (
@@ -609,11 +728,6 @@ function Leave() {
           </div>
         </div>
       </div>
-
-      {/* Toast */}
-      {toast && (
-        <div className={`lv-toast ${toast.type}`}>{toast.msg}</div>
-      )}
     </Layout>
   );
 }
