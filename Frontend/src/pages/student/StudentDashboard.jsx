@@ -1556,7 +1556,7 @@ function StudentDashboard() {
                   <div className="sd-help-stat-label">Response</div>
                 </div>
               </div>
-              <button className="sd-help-btn" onClick={() => alert("Warden contact coming soon")}>
+              <button className="sd-help-btn" onClick={() =>  window.location.href = "/warden-support"}>
                 Contact Warden →
               </button>
             </div>

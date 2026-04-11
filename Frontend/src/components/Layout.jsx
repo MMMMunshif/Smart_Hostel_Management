@@ -385,6 +385,8 @@ const STUDENT_NAV = [
       { icon: "✈", label: "Leave", path: "/leave" },
       { icon: "👤", label: "Visitors", path: "/visitors" },
       { icon: "📢", label: "Notices", path: "/notices" },
+      { icon: "💬", label: "Warden Support", path: "/warden-support" },
+      { icon: "💳", label: "Payments", path: "/payments" },
     ],
   },
 ];
@@ -401,8 +403,8 @@ const ADMIN_NAV = [
       { icon: "👥", label: "Students", path: "/admin/students" },
       { icon: "☰", label: "Requests", path: "/admin/requests" },
       { icon: "👥", label: "Roommate Pairs", path: "/admin/roommate-pairs" },
-      { icon: "📊", label: "Analytics", path: "/admin/analytics" }
-
+      { icon: "📊", label: "Analytics", path: "/admin/analytics" },
+      { icon: "💳", label: "Payments", path: "/admin/payments" },
     ],
   },
   {
@@ -414,7 +416,7 @@ const ADMIN_NAV = [
       { icon: "🔄", label: "Room Change Requests", path: "/admin/room-change-requests" },
       { icon: "➕", label: "Add Room", path: "/admin/add-room" },
       { icon: "📢", label: "Notices", path: "/admin/notices" },
-      
+      { icon: "💬", label: "Warden Inbox", path: "/admin/warden-inbox" },
     ],
   },
 ];

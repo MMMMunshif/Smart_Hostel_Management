@@ -141,7 +141,6 @@ const css = `
   white-space: nowrap;
 }
 .mc-tab:hover { color: #0f172a; background: #f8fafc; }
-.mc-tab.t-all      { }
 .mc-tab.t-all.on   { background: #0f172a; color: #fff; }
 .mc-tab.t-pend.on  { background: #fef3c7; color: #b45309; }
 .mc-tab.t-prog.on  { background: #dbeafe; color: #1d4ed8; }
@@ -158,8 +157,73 @@ const css = `
 }
 .mc-clear-btn:hover { background: #fee2e2; }
 
+/* Priority sort label */
+.mc-sort-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+}
+
 /* Count */
 .mc-count { font-size: 0.82rem; color: #94a3b8; font-weight: 600; margin-bottom: 18px; }
+
+/* Priority section headers */
+.mc-priority-group { margin-bottom: 28px; }
+
+.mc-priority-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.mc-priority-header.ph-high {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+.mc-priority-header.ph-medium {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+.mc-priority-header.ph-low {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+.mc-priority-header.ph-unknown {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.mc-priority-count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+.ph-high   .mc-priority-count { background: #fecaca; color: #dc2626; }
+.ph-medium .mc-priority-count { background: #fde68a; color: #b45309; }
+.ph-low    .mc-priority-count { background: #bbf7d0; color: #15803d; }
+.ph-unknown .mc-priority-count { background: #e2e8f0; color: #475569; }
 
 /* GRID */
 .mc-grid {
@@ -200,7 +264,6 @@ const css = `
   transition: transform 0.35s ease;
 }
 .mc-card:hover .mc-card-img { transform: scale(1.03); }
-
 .mc-img-wrap { overflow: hidden; }
 
 /* Card body */
@@ -342,6 +405,15 @@ const css = `
 `;
 
 /* ── HELPERS ── */
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
+const PRIORITY_GROUPS = [
+  { key: "high",    label: "High Priority",    icon: "🔴", headerCls: "ph-high"    },
+  { key: "medium",  label: "Medium Priority",  icon: "🟡", headerCls: "ph-medium"  },
+  { key: "low",     label: "Low Priority",     icon: "🟢", headerCls: "ph-low"     },
+  { key: "unknown", label: "No Priority Set",  icon: "⚪", headerCls: "ph-unknown" },
+];
+
 function statusCls(s = "") {
   const v = s.toLowerCase().replace(/\s/g, "");
   if (v === "pending")    return "s-pending";
@@ -370,6 +442,89 @@ function priorityIcon(p = "") {
   return "🟢";
 }
 
+/* ── COMPLAINT CARD ── */
+function ComplaintCard({ c, updating, onUpdate }) {
+  const imageUrl = c.image
+    ? c.image.startsWith("http") ? c.image : `http://localhost:5000/${c.image.replace(/\\\\/g, "/")}`
+    : "";
+  const statusNorm = c.status?.toLowerCase().replace(/\s/g, "");
+
+  return (
+    <div
+      className={`mc-card ${priorityBorderCls(c.priority)}`}
+    >
+      {imageUrl && (
+        <div className="mc-img-wrap">
+          <img src={imageUrl} alt={c.title} className="mc-card-img" />
+        </div>
+      )}
+
+      <div className="mc-card-body">
+        <div className="mc-card-top">
+          <div className="mc-card-title">{c.title}</div>
+          <span className={`mc-status ${statusCls(c.status)}`}>
+            {c.status || "Pending"}
+          </span>
+        </div>
+
+        <p className="mc-desc">{c.description}</p>
+
+        <div className="mc-tags">
+          {c.category && <span className="mc-tag-cat">🏷 {c.category}</span>}
+          {c.priority && (
+            <span className={`mc-tag-pri ${priorityChipCls(c.priority)}`}>
+              {priorityIcon(c.priority)} {c.priority}
+            </span>
+          )}
+        </div>
+
+        <div className="mc-meta">
+          <div className="mc-meta-item">
+            <span className="mc-meta-lbl">Student</span>
+            <span className="mc-meta-val">👤 {c.student?.name || "—"}</span>
+          </div>
+          <div className="mc-meta-item">
+            <span className="mc-meta-lbl">Room</span>
+            <span className="mc-meta-val">🏠 {c.room?.roomNumber || "No room"}</span>
+          </div>
+          <div className="mc-meta-item">
+            <span className="mc-meta-lbl">Email</span>
+            <span className="mc-meta-val" style={{ fontSize:"0.78rem", wordBreak:"break-all" }}>
+              {c.student?.email || "—"}
+            </span>
+          </div>
+          <div className="mc-meta-item">
+            <span className="mc-meta-lbl">Filed On</span>
+            <span className="mc-meta-val">
+              🕐 {c.createdAt
+                ? new Date(c.createdAt).toLocaleDateString("en-US", { day:"numeric", month:"short", year:"numeric" })
+                : "N/A"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mc-actions">
+        <button
+          className="mc-btn mc-btn-prog"
+          disabled={updating === c._id || statusNorm === "inprogress"}
+          onClick={() => onUpdate(c._id, "In Progress")}
+        >
+          {updating === c._id ? "⏳ Updating…" : "🔄 In Progress"}
+        </button>
+        <button
+          className="mc-btn mc-btn-res"
+          disabled={updating === c._id || statusNorm === "resolved"}
+          onClick={() => onUpdate(c._id, "Resolved")}
+        >
+          {updating === c._id ? "⏳ Updating…" : "✅ Resolve"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── MAIN ── */
 function ManageComplaints() {
   const { showToast } = useToast();
   const [complaints, setComplaints] = useState([]);
@@ -412,22 +567,43 @@ function ManageComplaints() {
     }
   };
 
+  // Filter then sort by priority (High → Medium → Low → unknown), newest first within same priority
   const filtered = useMemo(() => {
-    return complaints.filter((c) => {
-      const matchStatus = statusFilter === "all" || c.status?.toLowerCase() === statusFilter;
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
-        !q ||
-        c.title?.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q) ||
-        c.student?.name?.toLowerCase().includes(q) ||
-        c.student?.email?.toLowerCase().includes(q) ||
-        c.category?.toLowerCase().includes(q) ||
-        c.priority?.toLowerCase().includes(q) ||
-        c.room?.roomNumber?.toLowerCase().includes(q);
-      return matchStatus && matchSearch;
-    });
+    return complaints
+      .filter((c) => {
+        const matchStatus =
+          statusFilter === "all" || c.status?.toLowerCase() === statusFilter;
+        const q = searchQuery.toLowerCase();
+        const matchSearch =
+          !q ||
+          c.title?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.student?.name?.toLowerCase().includes(q) ||
+          c.student?.email?.toLowerCase().includes(q) ||
+          c.category?.toLowerCase().includes(q) ||
+          c.priority?.toLowerCase().includes(q) ||
+          c.room?.roomNumber?.toLowerCase().includes(q);
+        return matchStatus && matchSearch;
+      })
+      .sort((a, b) => {
+        const pa = PRIORITY_ORDER[a.priority?.toLowerCase()] ?? 99;
+        const pb = PRIORITY_ORDER[b.priority?.toLowerCase()] ?? 99;
+        if (pa !== pb) return pa - pb;
+        // newest first within same priority
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
   }, [complaints, statusFilter, searchQuery]);
+
+  // Group the sorted results by priority for visual section headers
+  const grouped = useMemo(() => {
+    const map = { high: [], medium: [], low: [], unknown: [] };
+    filtered.forEach((c) => {
+      const k = c.priority?.toLowerCase();
+      if (k === "high" || k === "medium" || k === "low") map[k].push(c);
+      else map.unknown.push(c);
+    });
+    return map;
+  }, [filtered]);
 
   const counts = useMemo(() => ({
     all:      complaints.length,
@@ -436,8 +612,8 @@ function ManageComplaints() {
     resolved: complaints.filter(c => c.status?.toLowerCase() === "resolved").length,
   }), [complaints]);
 
-  const tabCls = (key, cls) => {
-    const map = { all:"all", pending:"pending", "in progress":"progress", resolved:"resolved" };
+  const tabCls = (key) => {
+    const map = { all:"all", pending:"pend", "in progress":"prog", resolved:"res" };
     return `mc-tab t-${map[key] || "all"}${statusFilter === key ? " on" : ""}`;
   };
 
@@ -452,7 +628,7 @@ function ManageComplaints() {
           <div className="mc-header">
             <div className="mc-title-wrap">
               <h1>Manage Complaints</h1>
-              <p>Review, track, and resolve student hostel complaints.</p>
+              <p>Review, track, and resolve student hostel complaints — sorted by priority.</p>
             </div>
 
             <div className="mc-stats">
@@ -484,10 +660,15 @@ function ManageComplaints() {
             </div>
 
             <div className="mc-tabs">
-              <button className={tabCls("all")}          onClick={() => setStatusFilter("all")}>All ({counts.all})</button>
-              <button className={tabCls("pending")}      onClick={() => setStatusFilter("pending")}>Pending ({counts.pending})</button>
-              <button className={tabCls("in progress")}  onClick={() => setStatusFilter("in progress")}>In Progress ({counts.progress})</button>
-              <button className={tabCls("resolved")}     onClick={() => setStatusFilter("resolved")}>Resolved ({counts.resolved})</button>
+              <button className={tabCls("all")}         onClick={() => setStatusFilter("all")}>All ({counts.all})</button>
+              <button className={tabCls("pending")}     onClick={() => setStatusFilter("pending")}>Pending ({counts.pending})</button>
+              <button className={tabCls("in progress")} onClick={() => setStatusFilter("in progress")}>In Progress ({counts.progress})</button>
+              <button className={tabCls("resolved")}    onClick={() => setStatusFilter("resolved")}>Resolved ({counts.resolved})</button>
+            </div>
+
+            {/* Sort indicator */}
+            <div className="mc-sort-label">
+              🔴🟡🟢 Sorted by priority
             </div>
 
             {(searchQuery || statusFilter !== "all") && (
@@ -505,107 +686,43 @@ function ManageComplaints() {
 
           {loading && <div className="mc-loading">⏳ Loading complaints…</div>}
 
-          {!loading && (
+          {!loading && filtered.length === 0 && (
             <div className="mc-grid">
-              {filtered.length === 0 && (
-                <div className="mc-empty">
-                  <div className="mc-empty-icon">📋</div>
-                  <div className="mc-empty-text">No complaints found</div>
-                  <div className="mc-empty-sub">Try adjusting your search or filter.</div>
-                </div>
-              )}
-
-              {filtered.map((c, idx) => {
-                const imageUrl = c.image
-                  ? c.image.startsWith("http") ? c.image : `http://localhost:5000/${c.image.replace(/\\\\/g, "/")}`
-                  : "";
-                const statusNorm = c.status?.toLowerCase().replace(/\s/g, "");
-
-                return (
-                  <div
-                    key={c._id}
-                    className={`mc-card ${priorityBorderCls(c.priority)}`}
-                    style={{ animationDelay:`${idx * 0.04}s` }}
-                  >
-                    {/* Image */}
-                    {imageUrl && (
-                      <div className="mc-img-wrap">
-                        <img src={imageUrl} alt={c.title} className="mc-card-img" />
-                      </div>
-                    )}
-
-                    <div className="mc-card-body">
-                      {/* Title + Status */}
-                      <div className="mc-card-top">
-                        <div className="mc-card-title">{c.title}</div>
-                        <span className={`mc-status ${statusCls(c.status)}`}>
-                          {c.status || "Pending"}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <p className="mc-desc">{c.description}</p>
-
-                      {/* Tags */}
-                      <div className="mc-tags">
-                        {c.category && <span className="mc-tag-cat">🏷 {c.category}</span>}
-                        {c.priority && (
-                          <span className={`mc-tag-pri ${priorityChipCls(c.priority)}`}>
-                            {priorityIcon(c.priority)} {c.priority}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Meta */}
-                      <div className="mc-meta">
-                        <div className="mc-meta-item">
-                          <span className="mc-meta-lbl">Student</span>
-                          <span className="mc-meta-val">👤 {c.student?.name || "—"}</span>
-                        </div>
-                        <div className="mc-meta-item">
-                          <span className="mc-meta-lbl">Room</span>
-                          <span className="mc-meta-val">🏠 {c.room?.roomNumber || "No room"}</span>
-                        </div>
-                        <div className="mc-meta-item">
-                          <span className="mc-meta-lbl">Email</span>
-                          <span className="mc-meta-val" style={{ fontSize:"0.78rem", wordBreak:"break-all" }}>
-                            {c.student?.email || "—"}
-                          </span>
-                        </div>
-                        <div className="mc-meta-item">
-                          <span className="mc-meta-lbl">Filed On</span>
-                          <span className="mc-meta-val">
-                            🕐 {c.createdAt
-                              ? new Date(c.createdAt).toLocaleDateString("en-US", { day:"numeric", month:"short", year:"numeric" })
-                              : "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="mc-actions">
-                      <button
-                        className="mc-btn mc-btn-prog"
-                        disabled={updating === c._id || statusNorm === "inprogress"}
-                        onClick={() => updateStatus(c._id, "In Progress")}
-                      >
-                        {updating === c._id ? "⏳ Updating…" : "🔄 In Progress"}
-                      </button>
-
-                      <button
-                        className="mc-btn mc-btn-res"
-                        disabled={updating === c._id || statusNorm === "resolved"}
-                        onClick={() => updateStatus(c._id, "Resolved")}
-                      >
-                        {updating === c._id ? "⏳ Updating…" : "✅ Resolve"}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="mc-empty">
+                <div className="mc-empty-icon">📋</div>
+                <div className="mc-empty-text">No complaints found</div>
+                <div className="mc-empty-sub">Try adjusting your search or filter.</div>
+              </div>
             </div>
           )}
+
+          {/* Priority grouped sections */}
+          {!loading && filtered.length > 0 && PRIORITY_GROUPS.map(({ key, label, icon, headerCls }) => {
+            const group = grouped[key];
+            if (group.length === 0) return null;
+            return (
+              <div key={key} className="mc-priority-group">
+                {/* Section header */}
+                <div className={`mc-priority-header ${headerCls}`}>
+                  <span>{icon}</span>
+                  <span>{label}</span>
+                  <span className="mc-priority-count">{group.length} complaint{group.length !== 1 ? "s" : ""}</span>
+                </div>
+
+                {/* Cards grid */}
+                <div className="mc-grid">
+                  {group.map((c, idx) => (
+                    <ComplaintCard
+                      key={c._id}
+                      c={c}
+                      updating={updating}
+                      onUpdate={updateStatus}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
 
         </div>
       </div>
