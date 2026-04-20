@@ -15,6 +15,20 @@ const userSchema = new mongoose.Schema(
     email:    { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6 },
     role:     { type: String, enum: ["student", "admin"], default: "student" },
+    isVerified: {
+  type: Boolean,
+  default: undefined, // old users remain undefined, only new users will be false until verified
+},
+otpCode: {
+  type: String,
+  default: "",
+  select: false,
+},
+otpExpiresAt: {
+  type: Date,
+  default: null,
+  select: false,
+},
 
     // Only used when role === "student"
     preferences: { type: preferenceSchema, default: () => ({}) },
@@ -43,5 +57,7 @@ userSchema.methods.toJSON = function () {
   delete obj.password;
   return obj;
 };
+
+
 
 module.exports = mongoose.model("User", userSchema);
