@@ -1,16 +1,19 @@
-const User        = require("../models/User");
+const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const sendEmail = require("../utils/sendEmail");
+
+// helper
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 // ─────────────────────────────────────────────────
-// @desc    Register a new user
-// @route   POST /api/auth/register
+// @desc    Register a new user with OTP verification
+// @route   POST /api/users/register
 // @access  Public
 // ─────────────────────────────────────────────────
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, role, preferences } = req.body;
 
-    // ── Validate required fields ──────────────────
     if (!name || !email || !password || !role) {
       return res.status(400).json({
         success: false,
@@ -25,7 +28,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // ── Check duplicate email ─────────────────────
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({
@@ -34,35 +36,57 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // ── Build user object ─────────────────────────
-    const userData = { name, email, password, role };
+    const otpCode = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    const userData = {
+      name,
+      email,
+      password,
+      role,
+      isVerified: false,
+      otpCode,
+      otpExpiresAt,
+    };
 
     if (role === "student" && preferences) {
       userData.preferences = {
-        sleep:       preferences.sleep       || "",
+        sleep: preferences.sleep || "",
         cleanliness: preferences.cleanliness || 3,
-        study:       preferences.study       || "",
-        smoking:     preferences.smoking     || "",
-        noise:       preferences.noise       || "",
+        study: preferences.study || "",
+        smoking: preferences.smoking || "",
+        noise: preferences.noise || "",
       };
     }
 
-    // ── Save user (password hashed via pre-save hook) ──
     const user = await User.create(userData);
 
-    // ── Respond with token ────────────────────────
+    await sendEmail({
+      to: email,
+      subject: "Verify your account - OTP Code",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+          <h2>Email Verification</h2>
+          <p>Hello ${name},</p>
+          <p>Your verification OTP is:</p>
+          <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 16px 0;">
+            ${otpCode}
+          </div>
+          <p>This OTP will expire in 10 minutes.</p>
+        </div>
+      `,
+    });
+
     return res.status(201).json({
       success: true,
-      message: "Account created successfully.",
+      message: "Account created successfully. OTP sent to email.",
       data: {
-        user,
-        token: generateToken(user._id, user.role),
+        email: user.email,
       },
     });
   } catch (err) {
     console.error("registerUser error:", err);
 
-    // Mongoose validation errors
     if (err.name === "ValidationError") {
       const messages = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({ success: false, message: messages.join(", ") });
@@ -76,15 +100,146 @@ const registerUser = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────
+// @desc    Verify OTP
+// @route   POST /api/users/verify-otp
+// @access  Public
+// ─────────────────────────────────────────────────
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required.",
+      });
+    }
+
+    const user = await User.findOne({ email }).select("+otpCode +otpExpiresAt");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (user.isVerified === true) {
+      return res.status(400).json({
+        success: false,
+        message: "Account already verified.",
+      });
+    }
+
+    if (!user.otpCode || user.otpCode !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP.",
+      });
+    }
+
+    if (!user.otpExpiresAt || new Date(user.otpExpiresAt) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired.",
+      });
+    }
+
+    user.isVerified = true;
+    user.otpCode = "";
+    user.otpExpiresAt = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully. You can now log in.",
+    });
+  } catch (err) {
+    console.error("verifyOtp error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// ─────────────────────────────────────────────────
+// @desc    Resend OTP
+// @route   POST /api/users/resend-otp
+// @access  Public
+// ─────────────────────────────────────────────────
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    const user = await User.findOne({ email }).select("+otpCode +otpExpiresAt");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (user.isVerified === true) {
+      return res.status(400).json({
+        success: false,
+        message: "Account already verified.",
+      });
+    }
+
+    const otpCode = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.otpCode = otpCode;
+    user.otpExpiresAt = otpExpiresAt;
+    await user.save();
+
+    await sendEmail({
+      to: email,
+      subject: "Resend OTP - Verify your account",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+          <h2>Email Verification</h2>
+          <p>Hello ${user.name},</p>
+          <p>Your new verification OTP is:</p>
+          <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 16px 0;">
+            ${otpCode}
+          </div>
+          <p>This OTP will expire in 10 minutes.</p>
+        </div>
+      `,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP resent successfully.",
+    });
+  } catch (err) {
+    console.error("resendOtp error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// ─────────────────────────────────────────────────
 // @desc    Login user
-// @route   POST /api/auth/login
+// @route   POST /api/users/login
 // @access  Public
 // ─────────────────────────────────────────────────
 const loginUser = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    // ── Validate required fields ──────────────────
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -92,7 +247,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // ── Find user ─────────────────────────────────
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({
@@ -101,7 +255,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // ── Check role matches (optional frontend guard) ──
     if (role && user.role !== role) {
       return res.status(403).json({
         success: false,
@@ -109,15 +262,14 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // ── Check if account is active ────────────────
-    if (!user.isActive) {
+    // keep your existing isActive rule if your model has it
+    if (typeof user.isActive !== "undefined" && !user.isActive) {
       return res.status(403).json({
         success: false,
         message: "Your account has been deactivated. Contact support.",
       });
     }
 
-    // ── Verify password ───────────────────────────
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({
@@ -126,7 +278,18 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // ── Respond with token ────────────────────────
+    // IMPORTANT:
+    // only newly registered users with isVerified === false are blocked
+    // old users with undefined isVerified can still log in
+    if (user.isVerified === false) {
+      return res.status(403).json({
+        success: false,
+        message: "Email not verified. Please verify OTP first.",
+        needsVerification: true,
+        email: user.email,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Login successful.",
@@ -146,7 +309,7 @@ const loginUser = async (req, res) => {
 
 // ─────────────────────────────────────────────────
 // @desc    Get current logged-in user
-// @route   GET /api/auth/me
+// @route   GET /api/users/me
 // @access  Private
 // ─────────────────────────────────────────────────
 const getMe = async (req, res) => {
@@ -162,4 +325,10 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe };
+module.exports = {
+  registerUser,
+  loginUser,
+  getMe,
+  verifyOtp,
+  resendOtp,
+};

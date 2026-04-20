@@ -193,22 +193,27 @@ const css = `
 
 const STEPS = ["Your Role", "Basic Info", "Preferences"];
 
-// ── No props accepted — fully self-contained ──────────────
 function Register() {
   const navigate = useNavigate();
 
-  const [step,     setStep]     = useState(1);
-  const [error,    setError]    = useState("");
-  const [success,  setSuccess]  = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [step, setStep] = useState(1);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
   const [form, setForm] = useState({
-    role: "", name: "", email: "", password: "",
-    sleep: "", cleanliness: 3, study: "", smoking: "", noise: "",
+    role: "",
+    name: "",
+    email: "",
+    password: "",
+    sleep: "",
+    cleanliness: 3,
+    study: "",
+    smoking: "",
+    noise: "",
   });
 
-  // ── Renamed from "next" → "handleNext" to avoid prop shadowing ──
   const handleNext = () => {
     setError("");
 
@@ -232,10 +237,9 @@ function Register() {
       }
     }
 
-    if (step < 3) setStep(s => s + 1);
+    if (step < 3) setStep((s) => s + 1);
   };
 
-  // ── Real API call ─────────────────────────────────────────
   const handleRegister = async () => {
     setError("");
     setSuccess("");
@@ -243,50 +247,41 @@ function Register() {
 
     try {
       const body = {
-        name:     form.name,
-        email:    form.email,
+        name: form.name,
+        email: form.email,
         password: form.password,
-        role:     form.role,
+        role: form.role,
         ...(form.role === "student" && {
           preferences: {
-            sleep:       form.sleep,
+            sleep: form.sleep,
             cleanliness: form.cleanliness,
-            study:       form.study,
-            smoking:     form.smoking,
-            noise:       form.noise,
+            study: form.study,
+            smoking: form.smoking,
+            noise: form.noise,
           },
         }),
       };
 
-      const res  = await fetch("http://localhost:5000/api/users/register", {
-        method:  "POST",
+      const res = await fetch("http://localhost:5000/api/users/register", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(body),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Registration failed. Please try again.");
+        setError(data.message || data.error || "Registration failed. Please try again.");
         return;
       }
 
-      // ✅ Persist auth data
-      localStorage.setItem("token",  data.token);
-      localStorage.setItem("role",   data.user.role);
-      localStorage.setItem("userId", data.user._id);
-      localStorage.setItem("name",   data.user.name);
+      setSuccess("Account created. OTP sent to your email. Redirecting...");
 
-      setSuccess(`Welcome, ${data.user.name}! Redirecting...`);
-
-      // ✅ Redirect by role
       setTimeout(() => {
-navigate(
-  data.user.role === "admin"
-    ? "/admin/dashboard"
-    : "/dashboard"
-);      }, 1000);
-
+        navigate("/verify-otp", {
+          state: { email: data?.data?.email || form.email },
+        });
+      }, 1000);
     } catch (err) {
       setError("Cannot connect to server. Make sure backend is running on port 5000.");
     } finally {
@@ -296,15 +291,13 @@ navigate(
 
   const goBack = () => {
     setError("");
-    setStep(s => s - 1);
+    setStep((s) => s - 1);
   };
 
   return (
     <>
       <style>{css}</style>
       <div className="auth-root">
-
-        {/* ── Left visual panel ── */}
         <div className="auth-left">
           <div className="auth-dots" />
 
@@ -315,7 +308,11 @@ navigate(
 
           <div className="auth-left-body">
             <div className="auth-left-tagline">
-              Join <span>thousands</span> of<br />students finding<br />their perfect home.
+              Join <span>thousands</span> of
+              <br />
+              students finding
+              <br />
+              their perfect home.
             </div>
             <p className="auth-left-sub">
               Set up your profile in minutes. Our AI will handle the rest —
@@ -324,16 +321,12 @@ navigate(
 
             <div className="steps-preview">
               {STEPS.map((s, i) => {
-                const n   = i + 1;
+                const n = i + 1;
                 const cls = n < step ? "done" : n === step ? "active" : "pending";
                 return (
                   <div key={s} className="step-item">
-                    <div className={`step-num ${cls}`}>
-                      {n < step ? "✓" : n}
-                    </div>
-                    <div className={`step-label ${n === step ? "active-label" : ""}`}>
-                      {s}
-                    </div>
+                    <div className={`step-num ${cls}`}>{n < step ? "✓" : n}</div>
+                    <div className={`step-label ${n === step ? "active-label" : ""}`}>{s}</div>
                   </div>
                 );
               })}
@@ -343,15 +336,14 @@ navigate(
           <div className="auth-left-footer">© 2026 NestMate. All rights reserved.</div>
         </div>
 
-        {/* ── Right form panel ── */}
         <div className="auth-right">
           <div className="auth-card">
-
-            {/* Progress bar */}
             <div className="progress-wrap">
               <div className="progress-top">
                 <span className="progress-label">Registration</span>
-                <span className="progress-step">Step {step} of {STEPS.length}</span>
+                <span className="progress-step">
+                  Step {step} of {STEPS.length}
+                </span>
               </div>
               <div className="progress-track">
                 <div
@@ -361,18 +353,15 @@ navigate(
               </div>
             </div>
 
-            {/* Alerts */}
-            {error   && <div className="auth-error">⚠ {error}</div>}
+            {error && <div className="auth-error">⚠ {error}</div>}
             {success && <div className="auth-success">✓ {success}</div>}
 
-            {/* ══ STEP 1 — Role ══ */}
             {step === 1 && (
               <>
                 <div className="auth-card-header">
                   <div className="auth-card-title">Who are you? 🏠</div>
                   <div className="auth-card-sub">
-                    Already have an account?{" "}
-                    <a onClick={() => navigate("/login")}>Sign in</a>
+                    Already have an account? <a onClick={() => navigate("/login")}>Sign in</a>
                   </div>
                 </div>
 
@@ -407,7 +396,6 @@ navigate(
               </>
             )}
 
-            {/* ══ STEP 2 — Basic Info ══ */}
             {step === 2 && (
               <>
                 <div className="auth-card-header">
@@ -422,7 +410,7 @@ navigate(
                       className="input-field"
                       placeholder="e.g. Alex Johnson"
                       value={form.name}
-                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
                   </div>
 
@@ -432,7 +420,7 @@ navigate(
                       className="input-field"
                       placeholder="you@university.edu"
                       value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
                     />
                   </div>
 
@@ -445,10 +433,10 @@ navigate(
                         placeholder="Min. 6 characters"
                         style={{ paddingRight: "42px" }}
                         value={form.password}
-                        onChange={e => setForm({ ...form, password: e.target.value })}
-                        onKeyDown={e => e.key === "Enter" && handleNext()}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        onKeyDown={(e) => e.key === "Enter" && handleNext()}
                       />
-                      <span className="input-icon" onClick={() => setShowPass(p => !p)}>
+                      <span className="input-icon" onClick={() => setShowPass((p) => !p)}>
                         {showPass ? "🙈" : "👁"}
                       </span>
                     </div>
@@ -456,13 +444,16 @@ navigate(
                 </div>
 
                 <div className="auth-nav">
-                  <button className="btn-back" onClick={goBack}>← Back</button>
-                  <button className="btn-next" onClick={handleNext}>Continue →</button>
+                  <button className="btn-back" onClick={goBack}>
+                    ← Back
+                  </button>
+                  <button className="btn-next" onClick={handleNext}>
+                    Continue →
+                  </button>
                 </div>
               </>
             )}
 
-            {/* ══ STEP 3 — Student Preferences ══ */}
             {step === 3 && form.role === "student" && (
               <>
                 <div className="auth-card-header">
@@ -476,7 +467,7 @@ navigate(
                     <select
                       className="pref-select"
                       value={form.sleep}
-                      onChange={e => setForm({ ...form, sleep: e.target.value })}
+                      onChange={(e) => setForm({ ...form, sleep: e.target.value })}
                     >
                       <option value="">Select...</option>
                       <option value="early">Early Bird</option>
@@ -489,7 +480,7 @@ navigate(
                     <select
                       className="pref-select"
                       value={form.study}
-                      onChange={e => setForm({ ...form, study: e.target.value })}
+                      onChange={(e) => setForm({ ...form, study: e.target.value })}
                     >
                       <option value="">Select...</option>
                       <option value="silent">Silent Solo</option>
@@ -502,7 +493,7 @@ navigate(
                     <select
                       className="pref-select"
                       value={form.smoking}
-                      onChange={e => setForm({ ...form, smoking: e.target.value })}
+                      onChange={(e) => setForm({ ...form, smoking: e.target.value })}
                     >
                       <option value="">Select...</option>
                       <option value="no">Non-Smoker</option>
@@ -515,7 +506,7 @@ navigate(
                     <select
                       className="pref-select"
                       value={form.noise}
-                      onChange={e => setForm({ ...form, noise: e.target.value })}
+                      onChange={(e) => setForm({ ...form, noise: e.target.value })}
                     >
                       <option value="">Select...</option>
                       <option value="low">Low — Quiet space</option>
@@ -525,11 +516,9 @@ navigate(
                   </div>
 
                   <div className="pref-item clean-wrap">
-                    <label className="pref-label">
-                      🧹 Cleanliness Level — {form.cleanliness}/5
-                    </label>
+                    <label className="pref-label">🧹 Cleanliness Level — {form.cleanliness}/5</label>
                     <div className="clean-track">
-                      {[1, 2, 3, 4, 5].map(n => (
+                      {[1, 2, 3, 4, 5].map((n) => (
                         <div
                           key={n}
                           className={`clean-dot ${n <= form.cleanliness ? "filled" : ""}`}
@@ -544,21 +533,19 @@ navigate(
                   <button className="btn-back" onClick={goBack} disabled={loading}>
                     ← Back
                   </button>
-                  <button
-                    className="btn-next success"
-                    onClick={handleRegister}
-                    disabled={loading}
-                  >
-                    {loading
-                      ? <><div className="spinner" /> Creating...</>
-                      : "✓ Create Account"
-                    }
+                  <button className="btn-next success" onClick={handleRegister} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <div className="spinner" /> Creating...
+                      </>
+                    ) : (
+                      "✓ Create Account"
+                    )}
                   </button>
                 </div>
               </>
             )}
 
-            {/* ══ STEP 3 — Admin Setup ══ */}
             {step === 3 && form.role === "admin" && (
               <>
                 <div className="auth-card-header">
@@ -569,29 +556,28 @@ navigate(
                 </div>
 
                 <div className="admin-note">
-                  <strong>You're registering as an Admin.</strong><br />
-                  Your account will have access to room management, student
-                  request approvals, and system analytics.
+                  <strong>You're registering as an Admin.</strong>
+                  <br />
+                  Your account will have access to room management, student request approvals,
+                  and system analytics.
                 </div>
 
                 <div className="auth-nav">
                   <button className="btn-back" onClick={goBack} disabled={loading}>
                     ← Back
                   </button>
-                  <button
-                    className="btn-next success"
-                    onClick={handleRegister}
-                    disabled={loading}
-                  >
-                    {loading
-                      ? <><div className="spinner" /> Registering...</>
-                      : "✓ Register as Admin"
-                    }
+                  <button className="btn-next success" onClick={handleRegister} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <div className="spinner" /> Registering...
+                      </>
+                    ) : (
+                      "✓ Register as Admin"
+                    )}
                   </button>
                 </div>
               </>
             )}
-
           </div>
         </div>
       </div>

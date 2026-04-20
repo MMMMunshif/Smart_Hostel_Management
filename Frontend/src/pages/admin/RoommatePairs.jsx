@@ -15,12 +15,7 @@ const css = `
     padding: 28px;
     color: #111827;
   }
-
-  .rp-shell {
-    display: grid;
-    gap: 20px;
-  }
-
+  .rp-shell { display: grid; gap: 20px; }
   .rp-hero {
     background: linear-gradient(135deg, #e8fbf8, #eef7ff);
     border: 1px solid #e2f2f0;
@@ -28,35 +23,18 @@ const css = `
     padding: 24px;
     box-shadow: 0 10px 28px rgba(17,24,39,.04);
   }
-
   .rp-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: #8b95a7;
-    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; color: #8b95a7; margin-bottom: 10px;
   }
-
-  .rp-breadcrumb span {
-    color: #00b8ae;
-    font-weight: 700;
-  }
-
+  .rp-breadcrumb span { color: #00b8ae; font-weight: 700; }
   .rp-title {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    margin-bottom: 8px;
+    font-size: 2rem; font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.03em; margin-bottom: 8px;
   }
-
   .rp-sub {
-    font-size: 0.95rem;
-    color: #667085;
-    line-height: 1.6;
-    max-width: 780px;
+    font-size: 0.95rem; color: #667085; line-height: 1.6; max-width: 780px;
   }
 
   .rp-stats {
@@ -64,7 +42,6 @@ const css = `
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
   }
-
   .rp-stat {
     background: #fff;
     border: 1px solid #e8edf4;
@@ -72,26 +49,29 @@ const css = `
     padding: 20px;
     box-shadow: 0 10px 26px rgba(17,24,39,.04);
   }
-
   .rp-stat-kicker {
-    font-size: 0.68rem;
-    color: #9ca3af;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
+    font-size: 0.68rem; color: #9ca3af; font-weight: 800;
+    letter-spacing: 0.08em; margin-bottom: 8px;
   }
-
   .rp-stat-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #111827;
-    line-height: 1;
-    margin-bottom: 4px;
+    font-size: 1.8rem; font-weight: 800; color: #111827;
+    line-height: 1; margin-bottom: 4px;
+  }
+  .rp-stat-sub {
+    font-size: 0.82rem; color: #6b7280;
   }
 
-  .rp-stat-sub {
-    font-size: 0.82rem;
-    color: #6b7280;
+  .rp-search {
+    width: 100%;
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 11px 13px;
+    background: #fff;
+  }
+  .rp-search input {
+    border: none; outline: none; width: 100%;
+    font-family: inherit; font-size: 0.86rem; background: transparent;
   }
 
   .rp-grid {
@@ -100,7 +80,6 @@ const css = `
     gap: 20px;
     align-items: start;
   }
-
   .rp-card {
     background: #fff;
     border: 1px solid #e8edf4;
@@ -108,70 +87,29 @@ const css = `
     box-shadow: 0 10px 26px rgba(17,24,39,.04);
     padding: 20px;
   }
-
   .rp-card-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+    display: flex; justify-content: space-between; gap: 12px;
+    align-items: center; margin-bottom: 16px; flex-wrap: wrap;
   }
-
   .rp-card-title {
-    font-size: 1.08rem;
-    font-weight: 800;
-    color: #111827;
-    margin-bottom: 4px;
+    font-size: 1.08rem; font-weight: 800; color: #111827; margin-bottom: 4px;
   }
-
   .rp-card-sub {
-    font-size: 0.84rem;
-    color: #6b7280;
+    font-size: 0.84rem; color: #6b7280;
   }
-
-  .rp-search {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 11px 13px;
-    background: #fff;
-    margin-bottom: 16px;
-  }
-
-  .rp-search input {
-    border: none;
-    outline: none;
-    width: 100%;
-    font-family: inherit;
-    font-size: 0.86rem;
-    background: transparent;
-  }
-
   .rp-list {
-    display: grid;
-    gap: 14px;
+    display: grid; gap: 14px;
   }
-
   .rp-item {
     border: 1px solid #edf1f7;
     border-radius: 18px;
     padding: 16px;
     background: #fff;
   }
-
   .rp-pair-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
+    display: flex; justify-content: space-between; gap: 12px;
+    align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap;
   }
-
   .rp-pill {
     padding: 6px 10px;
     border-radius: 999px;
@@ -179,50 +117,29 @@ const css = `
     font-weight: 800;
     white-space: nowrap;
   }
-
   .pill-pending { background: #fff7ed; color: #c2410c; }
   .pill-accepted { background: #ecfdf5; color: #047857; }
   .pill-rejected { background: #fef2f2; color: #b91c1c; }
 
   .rp-students {
-    display: grid;
-    gap: 10px;
+    display: grid; gap: 10px;
   }
-
   .rp-student {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #f8fafc;
-    border: 1px solid #edf1f7;
-    border-radius: 16px;
-    padding: 12px;
+    display: flex; align-items: center; gap: 12px;
+    background: #f8fafc; border: 1px solid #edf1f7;
+    border-radius: 16px; padding: 12px;
   }
-
   .rp-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 42px; height: 42px; border-radius: 50%;
     background: linear-gradient(135deg, #58e4de, #93c5fd);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    flex-shrink: 0;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; flex-shrink: 0;
   }
-
   .rp-name {
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: #111827;
-    margin-bottom: 3px;
+    font-size: 0.9rem; font-weight: 800; color: #111827; margin-bottom: 3px;
   }
-
   .rp-meta {
-    font-size: 0.78rem;
-    color: #6b7280;
-    line-height: 1.5;
+    font-size: 0.78rem; color: #6b7280; line-height: 1.5;
   }
 
   .rp-message {
@@ -234,6 +151,39 @@ const css = `
     font-size: 0.84rem;
     color: #4b5563;
     line-height: 1.6;
+  }
+
+  .rp-allocate {
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .rp-select {
+    width: 100%;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    padding: 11px 13px;
+    font-family: inherit;
+    font-size: 0.86rem;
+    color: #111827;
+    outline: none;
+  }
+
+  .rp-btn {
+    border: none;
+    background: #58e4de;
+    color: #0f3d3c;
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .rp-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
   }
 
   .rp-time {
@@ -249,33 +199,18 @@ const css = `
   }
 
   @media (max-width: 1100px) {
-    .rp-stats {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .rp-grid {
-      grid-template-columns: 1fr;
-    }
+    .rp-stats { grid-template-columns: repeat(2, 1fr); }
+    .rp-grid { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 720px) {
-    .rp-root {
-      padding: 16px;
-    }
-
-    .rp-stats {
-      grid-template-columns: 1fr;
-    }
+    .rp-root { padding: 16px; }
+    .rp-stats { grid-template-columns: 1fr; }
   }
 `;
 
 function initials(name = "ST") {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
 function pillClass(status = "") {
@@ -299,19 +234,26 @@ function timeAgo(dateStr) {
 
 function RoommatePairs() {
   const { showToast } = useToast();
+
   const [requests, setRequests] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedRooms, setSelectedRooms] = useState({});
+  const [allocatingId, setAllocatingId] = useState("");
 
-  const fetchRequests = async () => {
+  const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
 
-      const res = await axios.get(`${API}/roommate-requests`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [reqRes, roomRes] = await Promise.all([
+        axios.get(`${API}/roommate-requests`, { headers }),
+        axios.get(`${API}/rooms`, { headers }),
+      ]);
 
-      setRequests(Array.isArray(res.data) ? res.data : []);
+      setRequests(Array.isArray(reqRes.data) ? reqRes.data : []);
+      setRooms(Array.isArray(roomRes.data) ? roomRes.data : roomRes.data.rooms || []);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -321,7 +263,7 @@ function RoommatePairs() {
   };
 
   useEffect(() => {
-    fetchRequests();
+    fetchData();
   }, []);
 
   const accepted = useMemo(
@@ -339,27 +281,54 @@ function RoommatePairs() {
     [requests]
   );
 
-  const filteredAccepted = useMemo(() => {
-    const q = search.toLowerCase();
-    return accepted.filter((r) => {
-      const fromName = r.fromStudent?.name?.toLowerCase() || "";
-      const toName = r.toStudent?.name?.toLowerCase() || "";
-      const fromEmail = r.fromStudent?.email?.toLowerCase() || "";
-      const toEmail = r.toStudent?.email?.toLowerCase() || "";
-      return !q || fromName.includes(q) || toName.includes(q) || fromEmail.includes(q) || toEmail.includes(q);
+  const allocatableRooms = useMemo(() => {
+    return rooms.filter((room) => {
+      const occupants = Array.isArray(room.occupants) ? room.occupants.length : 0;
+      const capacity = Number(room.capacity || 0);
+      return capacity - occupants >= 2 || (room.status || "").toLowerCase() === "available";
     });
-  }, [accepted, search]);
+  }, [rooms]);
 
-  const filteredPending = useMemo(() => {
+  const filterList = (list) => {
     const q = search.toLowerCase();
-    return pending.filter((r) => {
+    return list.filter((r) => {
       const fromName = r.fromStudent?.name?.toLowerCase() || "";
       const toName = r.toStudent?.name?.toLowerCase() || "";
       const fromEmail = r.fromStudent?.email?.toLowerCase() || "";
       const toEmail = r.toStudent?.email?.toLowerCase() || "";
       return !q || fromName.includes(q) || toName.includes(q) || fromEmail.includes(q) || toEmail.includes(q);
     });
-  }, [pending, search]);
+  };
+
+  const filteredAccepted = useMemo(() => filterList(accepted), [accepted, search]);
+  const filteredPending = useMemo(() => filterList(pending), [pending, search]);
+
+  const allocatePair = async (requestId) => {
+    const roomId = selectedRooms[requestId];
+
+    if (!roomId) {
+      showToast("Please select a room first", "error");
+      return;
+    }
+
+    try {
+      setAllocatingId(requestId);
+      const token = localStorage.getItem("token");
+
+      await axios.put(
+        `${API}/roommate-requests/${requestId}/allocate`,
+        { roomId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      showToast("Roommate pair allocated successfully", "success");
+      fetchData();
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to allocate pair", "error");
+    } finally {
+      setAllocatingId("");
+    }
+  };
 
   return (
     <Layout role="admin">
@@ -373,7 +342,7 @@ function RoommatePairs() {
             </div>
             <div className="rp-title">Roommate Pair Management</div>
             <div className="rp-sub">
-              Review accepted roommate pairings and pending mutual-interest requests before final room allocation.
+              Review accepted roommate pairs, track pending roommate requests, and allocate confirmed pairs into available rooms.
             </div>
           </div>
 
@@ -393,13 +362,13 @@ function RoommatePairs() {
             <div className="rp-stat">
               <div className="rp-stat-kicker">PENDING</div>
               <div className="rp-stat-value">{loading ? "—" : pending.length}</div>
-              <div className="rp-stat-sub">Awaiting response</div>
+              <div className="rp-stat-sub">Awaiting student response</div>
             </div>
 
             <div className="rp-stat">
-              <div className="rp-stat-kicker">REJECTED</div>
-              <div className="rp-stat-value">{loading ? "—" : rejected.length}</div>
-              <div className="rp-stat-sub">Declined requests</div>
+              <div className="rp-stat-kicker">AVAILABLE ROOMS</div>
+              <div className="rp-stat-value">{loading ? "—" : allocatableRooms.length}</div>
+              <div className="rp-stat-sub">Rooms usable for pair allocation</div>
             </div>
           </div>
 
@@ -417,7 +386,7 @@ function RoommatePairs() {
               <div className="rp-card-head">
                 <div>
                   <div className="rp-card-title">Accepted Roommate Pairs</div>
-                  <div className="rp-card-sub">These students have agreed to room together.</div>
+                  <div className="rp-card-sub">Allocate these students into the same room.</div>
                 </div>
               </div>
 
@@ -455,6 +424,38 @@ function RoommatePairs() {
                       {item.message ? (
                         <div className="rp-message">{item.message}</div>
                       ) : null}
+
+                      <div className="rp-allocate">
+                        <select
+                          className="rp-select"
+                          value={selectedRooms[item._id] || ""}
+                          onChange={(e) =>
+                            setSelectedRooms((prev) => ({
+                              ...prev,
+                              [item._id]: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">Select room for this pair</option>
+                          {allocatableRooms.map((room) => {
+                            const occ = Array.isArray(room.occupants) ? room.occupants.length : 0;
+                            const free = Number(room.capacity || 0) - occ;
+                            return (
+                              <option key={room._id} value={room._id}>
+                                {room.roomNumber} • {room.wing} • {room.type} • {free} slot(s) free
+                              </option>
+                            );
+                          })}
+                        </select>
+
+                        <button
+                          className="rp-btn"
+                          disabled={allocatingId === item._id}
+                          onClick={() => allocatePair(item._id)}
+                        >
+                          {allocatingId === item._id ? "Allocating..." : "Allocate Pair to Room"}
+                        </button>
+                      </div>
 
                       <div className="rp-time">Updated {timeAgo(item.updatedAt)}</div>
                     </div>

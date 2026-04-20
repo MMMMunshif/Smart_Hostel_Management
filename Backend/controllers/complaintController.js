@@ -24,6 +24,7 @@ exports.createComplaint = async (req, res) => {
       description,
       category,
       priority,
+      image: req.file ? req.file.path : "",
     });
 
     const populatedComplaint = await Complaint.findById(complaint._id)
