@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/upload");
 
 const { protect, authorise } = require("../middleware/Authmiddleware");
 
@@ -13,7 +14,7 @@ const {
 /* ================= STUDENT ROUTES ================= */
 
 // Create complaint
-router.post("/", protect, authorise("student"), createComplaint);
+router.post("/", protect, authorise("student"), upload.single("image"), createComplaint);
 
 // Get my complaints
 router.get("/my", protect, authorise("student"), getMyComplaints);

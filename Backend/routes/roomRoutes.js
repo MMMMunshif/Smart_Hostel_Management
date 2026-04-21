@@ -9,6 +9,7 @@ const {
   getRooms,
   deleteRoom,
   removeStudentFromRoom,
+  getMyRoom,
 } = require("../controllers/roomController");
 
 // Admin create room
@@ -19,6 +20,9 @@ router.post(
   upload.array("images", 5),
   createRoom
 );
+
+router.get("/my-room", protect, authorise("student"), getMyRoom);
+
 
 // Student view rooms
 router.get("/",  getRooms);
@@ -32,6 +36,9 @@ router.put(
   authorise("admin"),
   removeStudentFromRoom
 );
+
+
+
 
 module.exports = router;
 

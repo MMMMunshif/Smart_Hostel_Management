@@ -7,6 +7,7 @@ const {
   getMyRoommateRequests,
   updateRoommateRequestStatus,
   getAllRoommateRequests,
+  allocateAcceptedPairToRoom,
 } = require("../controllers/roommateRequestController");
 
 // student
@@ -16,5 +17,6 @@ router.put("/:id", protect, authorise("student"), updateRoommateRequestStatus);
 
 // admin
 router.get("/", protect, authorise("admin"), getAllRoommateRequests);
+router.put("/:id/allocate", protect, authorise("admin"), allocateAcceptedPairToRoom);
 
 module.exports = router;

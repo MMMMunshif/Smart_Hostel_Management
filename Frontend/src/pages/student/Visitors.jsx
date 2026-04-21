@@ -217,6 +217,18 @@ const STYLES = `
     box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
   }
 
+  .v-input.input-error, .v-select.input-error {
+    border-color: rgba(239,68,68,0.6);
+    background: rgba(239,68,68,0.04);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.08);
+  }
+
+  .v-input.input-valid, .v-select.input-valid {
+    border-color: rgba(16,185,129,0.5);
+    background: rgba(16,185,129,0.04);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08);
+  }
+
   .v-select option {
     background: #0f1623;
     color: #e8eaf2;
@@ -235,6 +247,15 @@ const STYLES = `
     color: #4b5563;
     pointer-events: none;
     font-size: 12px;
+  }
+
+  .field-error {
+    font-size: 11px;
+    color: #f87171;
+    margin-top: 4px;
+    display: block;
+    min-height: 16px;
+    font-weight: 500;
   }
 
   .submit-btn {
@@ -521,30 +542,109 @@ function StatusBadge({ status }) {
   return <span className={`status-badge ${cls}`}>{status}</span>;
 }
 
+// ── Validation Rules ────────────────────────────────────────────────────────
+//
+//  Sri Lanka NIC formats:
+//    Old format : 9 digits + V or X  (e.g. 123456789V)
+//    New format : 12 digits           (e.g. 200012345678)
+//
+const validators = {
+  roomId: (v) =>
+    v ? "" : "Please select a room.",
+
+  visitorName: (v) => {
+    if (!v.trim()) return "Full name is required.";
+    if (v.trim().length < 3) return "Name must be at least 3 characters.";
+    if (!/^[a-zA-Z\s'\-.]+$/.test(v.trim()))
+      return "Name may only contain letters, spaces, hyphens, or apostrophes.";
+    return "";
+  },
+
+  relation: (v) => {
+    if (!v.trim()) return "Relation is required.";
+    if (!/^[a-zA-Z\s'\-]+$/.test(v.trim()))
+      return "Enter a valid relation (e.g. Father, Sister).";
+    return "";
+  },
+
+  visitorNIC: (v) => {
+    const clean = v.trim();
+    if (!clean) return "NIC / ID is required.";
+    // Old format: 9 digits followed by V or X (case-insensitive)
+    const oldNIC = /^\d{9}[VvXx]$/.test(clean);
+    // New format: exactly 12 digits
+    const newNIC = /^\d{12}$/.test(clean);
+    if (!oldNIC && !newNIC)
+      return "Enter a valid Sri Lanka NIC (9 digits + V/X, or 12 digits).";
+    return "";
+  },
+
+  visitorPhone: (v) => {
+    const clean = v.replace(/[\s\-()]/g, "");
+    if (!clean) return "Phone number is required.";
+    if (!/^\+?\d{10,15}$/.test(clean))
+      return "Enter a valid phone number (10–15 digits, optional +).";
+    return "";
+  },
+
+  purpose: (v) => {
+    if (!v.trim()) return "Purpose of visit is required.";
+    if (v.trim().length < 5)
+      return "Describe the purpose in at least 5 characters.";
+    if (v.trim().length > 200) return "Purpose must be 200 characters or less.";
+    return "";
+  },
+
+  visitDate: (v) => {
+    if (!v) return "Visit date is required.";
+    const selected = new Date(v);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selected < today) return "Visit date cannot be in the past.";
+    return "";
+  },
+
+  inTime: (v) => (v ? "" : "Check-in time is required."),
+
+  outTime: (v, form) => {
+    if (!v) return "Check-out time is required.";
+    if (form.inTime && v <= form.inTime)
+      return "Check-out time must be after check-in time.";
+    return "";
+  },
+};
+
+const EMPTY_FORM = {
+  roomId: "",
+  visitorName: "",
+  visitorNIC: "",
+  visitorPhone: "",
+  relation: "",
+  purpose: "",
+  visitDate: "",
+  inTime: "",
+  outTime: "",
+};
+
 function Visitors() {
   const [visitors, setVisitors] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-
-  const [form, setForm] = useState({
-    roomId: "",
-    visitorName: "",
-    visitorNIC: "",
-    visitorPhone: "",
-    relation: "",
-    purpose: "",
-    visitDate: "",
-    inTime: "",
-    outTime: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [errors, setErrors] = useState({});
+  const { showToast } = useToast();
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
       const [visitorRes, roomRes] = await Promise.all([
-        axios.get(`${API}/visitors/my`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/rooms`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/visitors/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API}/rooms`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
       setVisitors(visitorRes.data || []);
       setRooms(roomRes.data || []);
@@ -555,19 +655,73 @@ function Visitors() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
-   const { showToast } = useToast();
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Validate a single field and update error state
+  const validateField = (field, value, currentForm) => {
+    const rule = validators[field];
+    const msg = rule ? rule(value, currentForm) : "";
+    setErrors((prev) => ({ ...prev, [field]: msg }));
+    return msg === "";
+  };
+
+  // Handle any field change: update form + validate immediately
+  const handleChange = (field, value) => {
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    validateField(field, value, updatedForm);
+
+    // Re-validate outTime whenever inTime changes (and outTime has a value)
+    if (field === "inTime" && updatedForm.outTime) {
+      const outMsg = validators.outTime(updatedForm.outTime, updatedForm);
+      setErrors((prev) => ({ ...prev, outTime: outMsg }));
+    }
+  };
+
+  // Validate all fields before submit
+  const validateAll = () => {
+    const newErrors = {};
+    for (const field of Object.keys(validators)) {
+      const rule = validators[field];
+      newErrors[field] = rule ? rule(form[field] ?? "", form) : "";
+    }
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => !e);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateAll()) {
+      showToast("Please fix the errors before submitting.", "error");
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`${API}/visitors`, form, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${API}/visitors`, form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       showToast("Visitor request submitted ✅", "success");
-      setForm({ roomId: "", visitorName: "", visitorNIC: "", visitorPhone: "", relation: "", purpose: "", visitDate: "", inTime: "", outTime: "" });
+      setForm(EMPTY_FORM);
+      setErrors({});
       fetchData();
     } catch (err) {
       showToast(err.response?.data?.message || "Error", "error");
     }
+  };
+
+  // Helper: compute class for input based on error/dirty state
+  const inputClass = (field) => {
+    if (errors[field]) return "v-input input-error";
+    if (form[field] && !errors[field]) return "v-input input-valid";
+    return "v-input";
+  };
+
+  const selectClass = (field) => {
+    if (errors[field]) return "v-select input-error";
+    if (form[field] && !errors[field]) return "v-select input-valid";
+    return "v-select";
   };
 
   const filteredVisitors = useMemo(() => {
@@ -576,13 +730,18 @@ function Visitors() {
     );
   }, [visitors, filter]);
 
-  // stats
-  const counts = useMemo(() => ({
-    all: visitors.length,
-    pending: visitors.filter((v) => v.status.toLowerCase() === "pending").length,
-    approved: visitors.filter((v) => v.status.toLowerCase() === "approved").length,
-    rejected: visitors.filter((v) => v.status.toLowerCase() === "rejected").length,
-  }), [visitors]);
+  const counts = useMemo(
+    () => ({
+      all: visitors.length,
+      pending: visitors.filter((v) => v.status.toLowerCase() === "pending")
+        .length,
+      approved: visitors.filter((v) => v.status.toLowerCase() === "approved")
+        .length,
+      rejected: visitors.filter((v) => v.status.toLowerCase() === "rejected")
+        .length,
+    }),
+    [visitors]
+  );
 
   return (
     <Layout role="student">
@@ -593,7 +752,9 @@ function Visitors() {
         <div className="page-header">
           <div className="page-title-block">
             <div className="page-eyebrow">Hostel Management</div>
-            <h1 className="page-title">Visitor <span>Requests</span></h1>
+            <h1 className="page-title">
+              Visitor <span>Requests</span>
+            </h1>
           </div>
 
           <div className="stats-row">
@@ -621,16 +782,15 @@ function Visitors() {
               <div className="card-title">Add Visitor</div>
             </div>
 
-            <form onSubmit={handleSubmit} className="form-group">
+            <form onSubmit={handleSubmit} className="form-group" noValidate>
               {/* Room */}
               <div className="field-wrap">
                 <label className="field-label">Room</label>
                 <div className="select-wrap">
                   <select
-                    required
-                    className="v-select"
+                    className={selectClass("roomId")}
                     value={form.roomId}
-                    onChange={(e) => setForm({ ...form, roomId: e.target.value })}
+                    onChange={(e) => handleChange("roomId", e.target.value)}
                   >
                     <option value="">Select a room…</option>
                     {rooms.map((r) => (
@@ -640,23 +800,38 @@ function Visitors() {
                     ))}
                   </select>
                 </div>
+                {errors.roomId && (
+                  <span className="field-error">{errors.roomId}</span>
+                )}
               </div>
 
               {/* Name + Relation */}
               <div className="field-row">
                 <div className="field-wrap">
                   <label className="field-label">Full Name</label>
-                  <input className="v-input" placeholder="e.g. Ahmad Ali" required
+                  <input
+                    className={inputClass("visitorName")}
+                    placeholder="e.g. Kamal Perera"
                     value={form.visitorName}
-                    onChange={(e) => setForm({ ...form, visitorName: e.target.value })}
+                    onChange={(e) =>
+                      handleChange("visitorName", e.target.value)
+                    }
                   />
+                  {errors.visitorName && (
+                    <span className="field-error">{errors.visitorName}</span>
+                  )}
                 </div>
                 <div className="field-wrap">
                   <label className="field-label">Relation</label>
-                  <input className="v-input" placeholder="e.g. Father" required
+                  <input
+                    className={inputClass("relation")}
+                    placeholder="e.g. Father"
                     value={form.relation}
-                    onChange={(e) => setForm({ ...form, relation: e.target.value })}
+                    onChange={(e) => handleChange("relation", e.target.value)}
                   />
+                  {errors.relation && (
+                    <span className="field-error">{errors.relation}</span>
+                  )}
                 </div>
               </div>
 
@@ -664,53 +839,85 @@ function Visitors() {
               <div className="field-row">
                 <div className="field-wrap">
                   <label className="field-label">NIC / ID</label>
-                  <input className="v-input" placeholder="ID number" required
+                  <input
+                    className={inputClass("visitorNIC")}
+                    placeholder="123456789V or 200012345678"
                     value={form.visitorNIC}
-                    onChange={(e) => setForm({ ...form, visitorNIC: e.target.value })}
+                    onChange={(e) => handleChange("visitorNIC", e.target.value)}
                   />
+                  {errors.visitorNIC && (
+                    <span className="field-error">{errors.visitorNIC}</span>
+                  )}
                 </div>
                 <div className="field-wrap">
                   <label className="field-label">Phone</label>
-                  <input className="v-input" placeholder="+92 …" required
+                  <input
+                    className={inputClass("visitorPhone")}
+                    placeholder="+94 7X XXX XXXX"
                     value={form.visitorPhone}
-                    onChange={(e) => setForm({ ...form, visitorPhone: e.target.value })}
+                    onChange={(e) =>
+                      handleChange("visitorPhone", e.target.value)
+                    }
                   />
+                  {errors.visitorPhone && (
+                    <span className="field-error">{errors.visitorPhone}</span>
+                  )}
                 </div>
               </div>
 
               {/* Purpose */}
               <div className="field-wrap">
                 <label className="field-label">Purpose of Visit</label>
-                <input className="v-input" placeholder="Brief reason…" required
+                <input
+                  className={inputClass("purpose")}
+                  placeholder="Brief reason…"
                   value={form.purpose}
-                  onChange={(e) => setForm({ ...form, purpose: e.target.value })}
+                  onChange={(e) => handleChange("purpose", e.target.value)}
                 />
+                {errors.purpose && (
+                  <span className="field-error">{errors.purpose}</span>
+                )}
               </div>
 
               {/* Date */}
               <div className="field-wrap">
                 <label className="field-label">Visit Date</label>
-                <input type="date" className="v-input" required
+                <input
+                  type="date"
+                  className={inputClass("visitDate")}
                   value={form.visitDate}
-                  onChange={(e) => setForm({ ...form, visitDate: e.target.value })}
+                  onChange={(e) => handleChange("visitDate", e.target.value)}
                 />
+                {errors.visitDate && (
+                  <span className="field-error">{errors.visitDate}</span>
+                )}
               </div>
 
               {/* Time */}
               <div className="field-row">
                 <div className="field-wrap">
                   <label className="field-label">Check-in Time</label>
-                  <input type="time" className="v-input" required
+                  <input
+                    type="time"
+                    className={inputClass("inTime")}
                     value={form.inTime}
-                    onChange={(e) => setForm({ ...form, inTime: e.target.value })}
+                    onChange={(e) => handleChange("inTime", e.target.value)}
                   />
+                  {errors.inTime && (
+                    <span className="field-error">{errors.inTime}</span>
+                  )}
                 </div>
                 <div className="field-wrap">
                   <label className="field-label">Check-out Time</label>
-                  <input type="time" className="v-input" required
+                  <input
+                    type="time"
+                    className={inputClass("outTime")}
                     value={form.outTime}
-                    onChange={(e) => setForm({ ...form, outTime: e.target.value })}
+                    onChange={(e) => handleChange("outTime", e.target.value)}
                   />
+                  {errors.outTime && (
+                    <span className="field-error">{errors.outTime}</span>
+                  )}
                 </div>
               </div>
 
@@ -737,7 +944,9 @@ function Visitors() {
                   >
                     {f.charAt(0).toUpperCase() + f.slice(1)}
                     {f !== "all" && counts[f] > 0 && (
-                      <span style={{ marginLeft: 5, fontSize: 10, opacity: 0.7 }}>
+                      <span
+                        style={{ marginLeft: 5, fontSize: 10, opacity: 0.7 }}
+                      >
                         {counts[f]}
                       </span>
                     )}
@@ -749,7 +958,9 @@ function Visitors() {
             {/* loading skeletons */}
             {loading && (
               <div className="loading-row">
-                {[1, 2, 3].map((i) => <div className="skeleton" key={i} />)}
+                {[1, 2, 3].map((i) => (
+                  <div className="skeleton" key={i} />
+                ))}
               </div>
             )}
 
@@ -759,7 +970,9 @@ function Visitors() {
                 <div className="empty-icon">👥</div>
                 <div className="empty-text">No visitor records found</div>
                 <p style={{ fontSize: 13, color: "#374151", marginTop: 6 }}>
-                  {filter !== "all" ? `No ${filter} requests yet.` : "Add a visitor using the form."}
+                  {filter !== "all"
+                    ? `No ${filter} requests yet.`
+                    : "Add a visitor using the form."}
                 </p>
               </div>
             )}
@@ -774,7 +987,11 @@ function Visitors() {
                       {/* Avatar */}
                       <div
                         className="visitor-avatar"
-                        style={{ background: `${bg}cc`, color: fg, border: `1.5px solid ${fg}40` }}
+                        style={{
+                          background: `${bg}cc`,
+                          color: fg,
+                          border: `1.5px solid ${fg}40`,
+                        }}
                       >
                         {getInitials(v.visitorName)}
                       </div>
@@ -784,20 +1001,39 @@ function Visitors() {
                         <div className="visitor-name">{v.visitorName}</div>
                         <div className="visitor-meta">
                           <span className="meta-tag">
-                            <svg width="11" height="11" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                            <svg
+                              width="11"
+                              height="11"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
                             </svg>
                             {v.relation}
                           </span>
                           <span className="meta-tag">
-                            <svg width="11" height="11" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                            <svg
+                              width="11"
+                              height="11"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                             </svg>
                             {v.visitorPhone}
                           </span>
                           <span className="meta-tag">
-                            <svg width="11" height="11" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                            <svg
+                              width="11"
+                              height="11"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             {new Date(v.visitDate).toDateString()}
                           </span>
