@@ -5,731 +5,703 @@ import { useToast } from "../../context/ToastContext";
 
 const API = "http://localhost:5000/api";
 
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;600;700&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+const statusStyles = {
+  Pending: {
+    bg: "linear-gradient(135deg, #fef3c7, #fde68a)",
+    color: "#92400e",
+    border: "#fbbf24",
+    icon: "⏳",
+  },
+  Approved: {
+    bg: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
+    color: "#065f46",
+    border: "#34d399",
+    icon: "✅",
+  },
+  Rejected: {
+    bg: "linear-gradient(135deg, #fee2e2, #fecaca)",
+    color: "#991b1b",
+    border: "#f87171",
+    icon: "❌",
+  },
+};
 
-  .lv-root {
-    font-family: 'DM Sans', sans-serif;
-    background: #f5f3ef;
-    min-height: 100vh;
-    padding: 36px 32px;
-    color: #1c1a17;
-    position: relative;
-  }
+function StatusBadge({ status }) {
+  const s = statusStyles[status] || statusStyles.Pending;
+  return (
+    <span
+      style={{
+        padding: "6px 14px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: ".6px",
+        textTransform: "uppercase",
+        background: s.bg,
+        color: s.color,
+        border: `1.5px solid ${s.border}`,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span>{s.icon}</span>
+      {status}
+    </span>
+  );
+}
 
-  .lv-root::before {
-    content: '';
-    position: fixed; top: -100px; right: -100px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(0,196,180,0.08) 0%, transparent 70%);
-    border-radius: 50%; pointer-events: none; z-index: 0;
-  }
-  .lv-root::after {
-    content: '';
-    position: fixed; bottom: -80px; left: -80px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(251,146,60,0.07) 0%, transparent 70%);
-    border-radius: 50%; pointer-events: none; z-index: 0;
-  }
+function formatDate(date) {
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("en-LK", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
-  @keyframes slideUp {
-    from { opacity:0; transform:translateY(20px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity:0; } to { opacity:1; }
-  }
-  @keyframes scaleIn {
-    from { opacity:0; transform:scale(.94); }
-    to   { opacity:1; transform:scale(1); }
-  }
-  @keyframes shimmer {
-    0%   { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
-  }
-  @keyframes pulse-dot {
-    0%, 100% { transform: scale(1); opacity:1; }
-    50%       { transform: scale(1.4); opacity:.7; }
-  }
+function daysBetween(a, b) {
+  if (!a || !b) return "—";
+  const diff =
+    Math.round(
+      (new Date(b).getTime() - new Date(a).getTime()) / (1000 * 60 * 60 * 24)
+    ) + 1;
+  return `${diff} day${diff > 1 ? "s" : ""}`;
+}
 
-  /* ── Header ── */
-  .lv-header {
-    margin-bottom: 32px; position: relative; z-index: 1;
-    animation: slideUp .45s cubic-bezier(.22,1,.36,1) both;
-  }
-  .lv-breadcrumb {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.72rem; font-weight: 500; color: #9a9488;
-    margin-bottom: 8px; letter-spacing: 0.02em;
-  }
-  .lv-breadcrumb-sep { color: #c8c2b8; }
-  .lv-breadcrumb-active { color: #00c4b4; font-weight: 600; }
-  .lv-title {
-    font-family: 'Fraunces', serif;
-    font-size: 2rem; font-weight: 700; color: #1c1a17;
-    letter-spacing: -0.03em; line-height: 1.1;
-    margin-bottom: 6px;
-  }
-  .lv-subtitle { font-size: 0.85rem; color: #7a7670; }
-
-  /* ── Stats Row ── */
-  .lv-stats {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 12px; margin-bottom: 28px;
-    position: relative; z-index: 1;
-  }
-  .lv-stat {
-    background: #fff; border-radius: 16px;
-    padding: 18px 20px; border: 1px solid #ebe7e0;
-    animation: slideUp .45s cubic-bezier(.22,1,.36,1) both;
-    position: relative; overflow: hidden;
-    transition: transform .2s, box-shadow .2s;
-  }
-  .lv-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.07); }
-  .lv-stat:nth-child(1){animation-delay:.05s}
-  .lv-stat:nth-child(2){animation-delay:.10s}
-  .lv-stat:nth-child(3){animation-delay:.15s}
-  .lv-stat:nth-child(4){animation-delay:.20s}
-  .lv-stat-accent {
-    position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    border-radius: 16px 16px 0 0;
-  }
-  .lv-stat-icon { font-size: 1.3rem; margin-bottom: 10px; }
-  .lv-stat-val {
-    font-family: 'Fraunces', serif;
-    font-size: 1.8rem; font-weight: 700; line-height: 1; color: #1c1a17;
-  }
-  .lv-stat-lbl { font-size: 0.7rem; color: #9a9488; margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
-
-  /* ── Main Layout ── */
-  .lv-body {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 20px;
-    position: relative; z-index: 1;
-    align-items: start;
-  }
-
-  /* ── Form Card ── */
-  .lv-form-card {
-    background: #1c1a17;
-    border-radius: 24px;
-    padding: 30px 28px;
-    position: sticky; top: 20px;
-    animation: scaleIn .5s cubic-bezier(.22,1,.36,1) .1s both;
-    overflow: hidden;
-  }
-  .lv-form-card::before {
-    content: '';
-    position: absolute; top: -60px; right: -60px;
-    width: 180px; height: 180px;
-    background: radial-gradient(circle, rgba(0,196,180,.15) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  .lv-form-card::after {
-    content: '';
-    position: absolute; bottom: -40px; left: -40px;
-    width: 140px; height: 140px;
-    background: radial-gradient(circle, rgba(251,146,60,.1) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  .lv-form-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.3rem; font-weight: 700; color: #fff;
-    margin-bottom: 4px; position: relative; z-index: 1;
-  }
-  .lv-form-sub { font-size: 0.78rem; color: #6a6660; margin-bottom: 24px; position: relative; z-index: 1; }
-
-  .lv-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; position: relative; z-index: 1; }
-  .lv-field-label {
-    font-size: 0.7rem; font-weight: 700; color: #5a5650;
-    text-transform: uppercase; letter-spacing: .07em;
-  }
-  .lv-field-input, .lv-field-textarea {
-    padding: 12px 14px;
-    background: rgba(255,255,255,.06);
-    border: 1.5px solid rgba(255,255,255,.1);
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem; color: #fff;
-    outline: none; transition: border-color .2s, background .2s;
-    width: 100%;
-  }
-  .lv-field-input::placeholder, .lv-field-textarea::placeholder { color: #4a4840; }
-  .lv-field-input:focus, .lv-field-textarea:focus {
-    border-color: #00c4b4;
-    background: rgba(255,255,255,.09);
-  }
-  /* Validation error state */
-  .lv-field-input.field-error, .lv-field-textarea.field-error {
-    border-color: #f43f5e !important;
-    background: rgba(244,63,94,.08) !important;
-  }
-  .lv-field-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.5); cursor: pointer; }
-  .lv-field-textarea { resize: none; min-height: 80px; }
-
-  /* Field error message */
-  .lv-field-error {
-    font-size: 0.68rem; color: #f43f5e; font-weight: 600;
-    display: flex; align-items: center; gap: 4px;
-    animation: fadeIn .2s ease;
-    position: relative; z-index: 1;
-  }
-
-  .lv-date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; position: relative; z-index: 1; }
-
-  /* Duration badge */
-  .lv-duration {
-    background: rgba(0,196,180,.15); border: 1px solid rgba(0,196,180,.25);
-    border-radius: 10px; padding: 10px 14px;
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 16px; position: relative; z-index: 1;
-  }
-  .lv-duration-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #00c4b4;
-    animation: pulse-dot 1.5s ease infinite; flex-shrink: 0;
-  }
-  .lv-duration-text { font-size: 0.78rem; color: #00c4b4; font-weight: 600; }
-
-  .lv-submit-btn {
-    width: 100%; padding: 14px;
-    background: linear-gradient(135deg, #00c4b4, #00a89a);
-    color: #fff; border: none; border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem; font-weight: 700; cursor: pointer;
-    transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
-    position: relative; z-index: 1;
-    box-shadow: 0 6px 20px rgba(0,196,180,.3);
-  }
-  .lv-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,196,180,.4); }
-  .lv-submit-btn:active { transform: scale(.98); }
-  .lv-submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-
-  /* ── Right Panel ── */
-  .lv-right { display: flex; flex-direction: column; gap: 16px; }
-
-  /* ── Filter Bar ── */
-  .lv-filter-bar {
-    background: #fff; border-radius: 16px;
-    padding: 14px 18px; border: 1px solid #ebe7e0;
-    display: flex; align-items: center; gap: 12px;
-    flex-wrap: wrap;
-    animation: slideUp .45s cubic-bezier(.22,1,.36,1) .15s both;
-  }
-  .lv-filter-label { font-size: 0.72rem; font-weight: 700; color: #9a9488; text-transform: uppercase; letter-spacing:.05em; flex-shrink:0; }
-  .lv-filter-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
-  .lv-filter-chip {
-    padding: 7px 16px; border-radius: 99px;
-    border: 1.5px solid #ebe7e0; background: #faf8f5;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem; font-weight: 600; color: #7a7670;
-    cursor: pointer; transition: all .2s;
-  }
-  .lv-filter-chip.active { background: #1c1a17; color: #fff; border-color: #1c1a17; }
-  .lv-filter-chip:hover:not(.active) { border-color: #00c4b4; color: #00c4b4; }
-  .lv-count-badge {
-    margin-left: auto; font-size: 0.72rem; font-weight: 700;
-    color: #9a9488; background: #f0ede8;
-    padding: 4px 12px; border-radius: 99px;
-  }
-
-  /* ── Leave Cards ── */
-  .lv-list { display: flex; flex-direction: column; gap: 12px; }
-
-  .lv-card {
-    background: #fff; border-radius: 18px;
-    border: 1px solid #ebe7e0; padding: 20px 22px;
-    display: flex; gap: 18px; align-items: flex-start;
-    animation: slideUp .4s cubic-bezier(.22,1,.36,1) both;
-    transition: transform .2s, box-shadow .2s;
-    position: relative; overflow: hidden;
-  }
-  .lv-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(0,0,0,.07);
-    border-color: #d8d4ce;
-  }
-  .lv-card:nth-child(1){animation-delay:.10s}
-  .lv-card:nth-child(2){animation-delay:.15s}
-  .lv-card:nth-child(3){animation-delay:.20s}
-  .lv-card:nth-child(4){animation-delay:.25s}
-  .lv-card:nth-child(5){animation-delay:.30s}
-
-  .lv-card-stripe {
-    width: 4px; border-radius: 99px; flex-shrink: 0; align-self: stretch;
-  }
-  .stripe-pending  { background: linear-gradient(180deg, #fb923c, #f59e0b); }
-  .stripe-approved { background: linear-gradient(180deg, #00c4b4, #10b981); }
-  .stripe-rejected { background: linear-gradient(180deg, #f43f5e, #e11d48); }
-
-  .lv-card-body { flex: 1; min-width: 0; }
-  .lv-card-top {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 8px; gap: 12px;
-  }
-  .lv-card-reason {
-    font-family: 'Fraunces', serif;
-    font-size: 1rem; font-weight: 600; color: #1c1a17;
-    line-height: 1.3;
-  }
-
-  .lv-status-pill {
-    padding: 4px 12px; border-radius: 99px;
-    font-size: 0.68rem; font-weight: 800; flex-shrink: 0;
-    display: flex; align-items: center; gap: 5px;
-    letter-spacing: .03em; text-transform: uppercase;
-  }
-  .pill-pending  { background: #fff7ed; color: #c2590a; border: 1px solid #fed7aa; }
-  .pill-approved { background: #f0fdf9; color: #0f766e; border: 1px solid #99f6e4; }
-  .pill-rejected { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-
-  .lv-card-dates {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.78rem; color: #7a7670; margin-bottom: 10px;
-  }
-  .lv-card-date-from, .lv-card-date-to {
-    background: #f5f3ef; border-radius: 8px;
-    padding: 4px 10px; font-weight: 600; color: #3a3830;
-  }
-  .lv-card-date-arrow { color: #c8c2b8; font-size: 0.7rem; }
-
-  .lv-card-footer {
-    display: flex; align-items: center; gap: 16px;
-    padding-top: 10px; border-top: 1px solid #f0ede8;
-  }
-  .lv-card-meta {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 0.72rem; color: #9a9488;
-  }
-  .lv-card-days {
-    margin-left: auto;
-    font-size: 0.72rem; font-weight: 700; color: #5a5650;
-    background: #f0ede8; padding: 3px 10px; border-radius: 99px;
-  }
-
-  /* ── Empty ── */
-  .lv-empty {
-    background: #fff; border-radius: 18px; border: 1px solid #ebe7e0;
-    padding: 52px 24px; text-align: center;
-    animation: fadeIn .4s ease both;
-  }
-  .lv-empty-icon { font-size: 2.8rem; margin-bottom: 12px; }
-  .lv-empty-title { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600; color: #1c1a17; margin-bottom: 6px; }
-  .lv-empty-sub   { font-size: 0.8rem; color: #9a9488; }
-
-  /* ── Skeleton ── */
-  .lv-skeleton {
-    background: linear-gradient(90deg, #f0ede8 25%, #e8e4de 50%, #f0ede8 75%);
-    background-size: 800px 100%; border-radius: 12px;
-    animation: shimmer 1.4s infinite;
-  }
-
-  /* ── Toast ── */
-  .lv-toast {
-    position: fixed; bottom: 28px; right: 28px;
-    padding: 14px 22px; border-radius: 14px; color: #fff;
-    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
-    z-index: 9999; animation: slideUp .3s ease;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.18);
-    min-width: 240px;
-  }
-  .lv-toast.success { background: linear-gradient(135deg, #00c4b4, #00a89a); }
-  .lv-toast.error   { background: linear-gradient(135deg, #f43f5e, #e11d48); }
-
-  @media (max-width: 1024px) {
-    .lv-body { grid-template-columns: 1fr; }
-    .lv-form-card { position: static; }
-    .lv-stats { grid-template-columns: repeat(2,1fr); }
-  }
-  @media (max-width: 600px) {
-    .lv-root { padding: 16px; }
-    .lv-stats { grid-template-columns: repeat(2,1fr); }
-    .lv-card { flex-direction: column; }
-  }
-`;
-
-const FILTERS = [
-  { label: "All",      value: "all"      },
-  { label: "Pending",  value: "pending"  },
-  { label: "Approved", value: "approved" },
-  { label: "Rejected", value: "rejected" },
+const STATS = [
+  {
+    label: "Total Requests",
+    key: "total",
+    gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+    icon: "📋",
+    shadow: "rgba(99,102,241,.35)",
+  },
+  {
+    label: "Pending",
+    key: "pending",
+    gradient: "linear-gradient(135deg, #f59e0b, #fbbf24)",
+    icon: "⏳",
+    shadow: "rgba(245,158,11,.35)",
+  },
+  {
+    label: "Approved",
+    key: "approved",
+    gradient: "linear-gradient(135deg, #10b981, #34d399)",
+    icon: "✅",
+    shadow: "rgba(16,185,129,.35)",
+  },
+  {
+    label: "Rejected",
+    key: "rejected",
+    gradient: "linear-gradient(135deg, #ef4444, #f87171)",
+    icon: "❌",
+    shadow: "rgba(239,68,68,.35)",
+  },
 ];
 
-const statusPill = (status = "") => {
-  const s = status.toLowerCase();
-  if (s === "approved") return "pill-approved";
-  if (s === "rejected") return "pill-rejected";
-  return "pill-pending";
-};
-
-const stripeClass = (status = "") => {
-  const s = status.toLowerCase();
-  if (s === "approved") return "stripe-approved";
-  if (s === "rejected") return "stripe-rejected";
-  return "stripe-pending";
-};
-
-const daysBetween = (from, to) => {
-  if (!from || !to) return null;
-  const diff = new Date(to) - new Date(from);
-  const d = Math.round(diff / 86400000) + 1;
-  return d > 0 ? d : null;
-};
-
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
-
-// ── Validation helpers ──────────────────────────────────────────────────────
-const REASON_MIN = 10;
-const REASON_MAX = 300;
-const MAX_LEAVE_DAYS = 30;
-
-const validate = (form) => {
-  const errors = {};
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Reason
-  const reason = form.reason.trim();
-  if (!reason) {
-    errors.reason = "Reason is required.";
-  } else if (reason.length < REASON_MIN) {
-    errors.reason = `Reason must be at least ${REASON_MIN} characters.`;
-  } else if (reason.length > REASON_MAX) {
-    errors.reason = `Reason must be under ${REASON_MAX} characters.`;
-  }
-
-  // From Date
-  if (!form.fromDate) {
-    errors.fromDate = "Start date is required.";
-  } else {
-    const from = new Date(form.fromDate);
-    if (from < today) {
-      errors.fromDate = "Start date cannot be in the past.";
-    }
-  }
-
-  // To Date
-  if (!form.toDate) {
-    errors.toDate = "End date is required.";
-  } else if (form.fromDate) {
-    const from = new Date(form.fromDate);
-    const to   = new Date(form.toDate);
-    if (to < from) {
-      errors.toDate = "End date must be on or after start date.";
-    } else {
-      const days = daysBetween(form.fromDate, form.toDate);
-      if (days > MAX_LEAVE_DAYS) {
-        errors.toDate = `Leave cannot exceed ${MAX_LEAVE_DAYS} days.`;
-      }
-    }
-  }
-
-  return errors;
-};
-// ───────────────────────────────────────────────────────────────────────────
-
-function Leave() {
-  // ✅ useToast called at the top level — fixes the Rules of Hooks violation
+export default function Leave() {
   const { showToast } = useToast();
 
-  const [leaves, setLeaves]             = useState([]);
-  const [form, setForm]                 = useState({ reason: "", fromDate: "", toDate: "" });
-  const [errors, setErrors]             = useState({});
-  const [touched, setTouched]           = useState({});
-  const [loading, setLoading]           = useState(true);
-  const [submitting, setSubmitting]     = useState(false);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [tab, setTab] = useState("temporary");
+  const [reason, setReason] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [leaves, setLeaves] = useState([]);
+  const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState("");
+
+  const token = localStorage.getItem("token");
 
   const fetchLeaves = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res   = await axios.get(`${API}/leaves/my`, {
+      setHistoryLoading(true);
+      const res = await axios.get(`${API}/leaves/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeaves(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to load leave requests.", "error");
+    } catch {
+      showToast("Failed to load leave requests", "error");
     } finally {
-      setLoading(false);
+      setHistoryLoading(false);
     }
   };
 
   useEffect(() => { fetchLeaves(); }, []);
 
-  // Live validation on every form change
-  const handleChange = (field, value) => {
-    const updated = { ...form, [field]: value };
-    setForm(updated);
-    // Re-validate only touched fields so errors don't flash on first load
-    if (touched[field]) {
-      setErrors(validate(updated));
+  const submitLeave = async () => {
+    if (!reason.trim()) { showToast("Please enter a reason", "error"); return; }
+    if (tab === "temporary") {
+      if (!fromDate || !toDate) { showToast("Please select dates", "error"); return; }
+      if (new Date(fromDate) > new Date(toDate)) { showToast("From date cannot be after To date", "error"); return; }
     }
-  };
-
-  // Mark field as touched on blur so inline errors appear after interaction
-  const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-    setErrors(validate(form));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Touch all fields to show every error at once
-    setTouched({ reason: true, fromDate: true, toDate: true });
-    const validationErrors = validate(form);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      showToast("Please fix the errors before submitting.", "error");
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(`${API}/leaves`, form, {
+      setLoading(true);
+      const payload = { reason, leaveType: tab };
+      if (tab === "temporary") { payload.fromDate = fromDate; payload.toDate = toDate; }
+      await axios.post(`${API}/leaves`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      showToast("Leave request submitted ✅");
-      setForm({ reason: "", fromDate: "", toDate: "" });
-      setErrors({});
-      setTouched({});
+      showToast(
+        tab === "temporary" ? "Temporary leave request sent" : "Permanent room leave request sent",
+        "success"
+      );
+      setReason(""); setFromDate(""); setToDate("");
       fetchLeaves();
     } catch (err) {
-      showToast(err.response?.data?.message || "Failed to submit ❌", "error");
+      showToast(err?.response?.data?.message || "Failed to submit request", "error");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // Stats
-  const total    = leaves.length;
-  const pending  = leaves.filter(l => l.status?.toLowerCase() === "pending").length;
-  const approved = leaves.filter(l => l.status?.toLowerCase() === "approved").length;
-  const rejected = leaves.filter(l => l.status?.toLowerCase() === "rejected").length;
+  const stats = useMemo(() => ({
+    total: leaves.length,
+    pending: leaves.filter((l) => l.status === "Pending").length,
+    approved: leaves.filter((l) => l.status === "Approved").length,
+    rejected: leaves.filter((l) => l.status === "Rejected").length,
+  }), [leaves]);
 
-  // Filter
-  const filtered = useMemo(() =>
-    leaves.filter(l =>
-      statusFilter === "all" || l.status?.toLowerCase() === statusFilter
-    ), [leaves, statusFilter]);
-
-  // Duration preview
-  const previewDays = daysBetween(form.fromDate, form.toDate);
-
-  const today = new Date().toISOString().split("T")[0];
+  const filteredLeaves = useMemo(() =>
+    leaves.filter((l) => {
+      const matchFilter = filter === "All" || l.status === filter;
+      const q = search.toLowerCase();
+      const matchSearch = !q || l.reason?.toLowerCase().includes(q) ||
+        l.leaveType?.toLowerCase().includes(q) ||
+        l.room?.roomNumber?.toLowerCase().includes(q);
+      return matchFilter && matchSearch;
+    }), [leaves, filter, search]);
 
   return (
     <Layout role="student">
-      <style>{css}</style>
-      <div className="lv-root">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900;1000&display=swap');
 
-        {/* Header */}
-        <div className="lv-header">
-          <div className="lv-breadcrumb">
-            Dashboard <span className="lv-breadcrumb-sep">›</span>
-            <span className="lv-breadcrumb-active">Leave Requests</span>
-          </div>
-          <h1 className="lv-title">Leave Requests</h1>
-          <p className="lv-subtitle">Apply for leave and track your request status</p>
-        </div>
+        * { box-sizing: border-box; }
 
-        {/* Stats */}
-        <div className="lv-stats">
-          {[
-            { icon:"📋", val:total,    lbl:"Total Requests", accent:"#6366f1" },
-            { icon:"⏳", val:pending,  lbl:"Pending",        accent:"#fb923c" },
-            { icon:"✅", val:approved, lbl:"Approved",       accent:"#00c4b4" },
-            { icon:"❌", val:rejected, lbl:"Rejected",       accent:"#f43f5e" },
-          ].map((s, i) => (
-            <div key={i} className="lv-stat">
-              <div className="lv-stat-accent" style={{ background: s.accent }} />
-              <div className="lv-stat-icon">{s.icon}</div>
-              <div className="lv-stat-val">{loading ? "—" : s.val}</div>
-              <div className="lv-stat-lbl">{s.lbl}</div>
+        .leave-root * {
+          font-family: 'Nunito', sans-serif;
+        }
+
+        /* Animated background blobs */
+        .leave-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        .blob {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.45;
+          animation: blobFloat 8s ease-in-out infinite;
+        }
+        .blob1 { width: 500px; height: 500px; background: #c4b5fd; top: -120px; left: -100px; animation-delay: 0s; }
+        .blob2 { width: 400px; height: 400px; background: #fbcfe8; top: 200px; right: -80px; animation-delay: 2s; }
+        .blob3 { width: 350px; height: 350px; background: #bfdbfe; bottom: 100px; left: 30%; animation-delay: 4s; }
+        .blob4 { width: 300px; height: 300px; background: #bbf7d0; bottom: -80px; right: 20%; animation-delay: 1s; }
+
+        @keyframes blobFloat {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-30px) scale(1.05); }
+        }
+
+        .leave-content { position: relative; z-index: 1; }
+
+        /* Glass card */
+        .card {
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1.5px solid rgba(255, 255, 255, 0.9);
+          box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08);
+        }
+
+        /* Stat card */
+        .stat-card {
+          border-radius: 24px;
+          padding: 22px 20px;
+          color: #fff;
+          position: relative;
+          overflow: hidden;
+          transition: transform .22s, box-shadow .22s;
+          cursor: default;
+        }
+        .stat-card:hover {
+          transform: translateY(-5px) scale(1.02);
+        }
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          width: 120px; height: 120px;
+          border-radius: 50%;
+          background: rgba(255,255,255,.15);
+          top: -30px; right: -30px;
+        }
+        .stat-card::after {
+          content: '';
+          position: absolute;
+          width: 80px; height: 80px;
+          border-radius: 50%;
+          background: rgba(255,255,255,.1);
+          bottom: -20px; left: 10px;
+        }
+
+        /* Input */
+        .inp {
+          width: 100%;
+          padding: 13px 16px;
+          border-radius: 16px;
+          border: 2px solid rgba(99,102,241,.15);
+          background: rgba(255,255,255,.9);
+          outline: none;
+          font-size: 14px;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 700;
+          color: #1e1b4b;
+          transition: .2s;
+        }
+        .inp:focus {
+          border-color: #818cf8;
+          box-shadow: 0 0 0 4px rgba(129,140,248,.15);
+          background: #fff;
+        }
+        .inp::placeholder { color: #a5b4fc; font-weight: 600; }
+
+        /* Tabs */
+        .tab-btn {
+          border: none;
+          cursor: pointer;
+          border-radius: 18px;
+          font-weight: 800;
+          font-family: 'Nunito', sans-serif;
+          font-size: 13px;
+          padding: 13px 16px;
+          transition: .2s;
+          flex: 1;
+        }
+        .tab-btn:hover { transform: translateY(-2px); }
+
+        /* Submit btn */
+        .submit-btn {
+          width: 100%;
+          padding: 15px;
+          border: none;
+          border-radius: 18px;
+          font-weight: 900;
+          font-family: 'Nunito', sans-serif;
+          font-size: 15px;
+          cursor: pointer;
+          color: #fff;
+          transition: .22s;
+          letter-spacing: .3px;
+        }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.06); }
+        .submit-btn:disabled { opacity: .7; cursor: not-allowed; }
+
+        /* History card */
+        .history-card {
+          border-radius: 24px;
+          padding: 22px;
+          transition: transform .22s, box-shadow .22s;
+        }
+        .history-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 24px 48px rgba(99,102,241,.14) !important;
+        }
+
+        /* Label */
+        .field-label {
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .5px;
+          text-transform: uppercase;
+          display: block;
+          margin-bottom: 7px;
+        }
+
+        /* Fade in */
+        .fade-in {
+          animation: fadeUp .4s ease both;
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stagger */
+        .s1 { animation-delay: .05s; }
+        .s2 { animation-delay: .10s; }
+        .s3 { animation-delay: .15s; }
+        .s4 { animation-delay: .20s; }
+        .s5 { animation-delay: .25s; }
+        .s6 { animation-delay: .30s; }
+
+        /* Responsive */
+        @media(max-width:900px){
+          .top-grid { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+        @media(max-width:560px){
+          .stats-grid { grid-template-columns: 1fr !important; }
+          .filter-row { flex-direction: column !important; }
+          .filter-row input, .filter-row select { width: 100% !important; }
+        }
+      `}</style>
+
+      {/* Animated background */}
+      <div className="leave-bg">
+        <div className="blob blob1" />
+        <div className="blob blob2" />
+        <div className="blob blob3" />
+        <div className="blob blob4" />
+      </div>
+
+      <div
+        className="leave-root leave-content"
+        style={{ minHeight: "100vh", padding: "28px 24px", background: "linear-gradient(145deg,#f0f4ff 0%,#fdf4ff 40%,#f0fff8 100%)" }}
+      >
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+
+          {/* ── Header ── */}
+          <div className="fade-in" style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 6 }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 16,
+                background: "linear-gradient(135deg,#6366f1,#a78bfa)",
+                display: "grid", placeItems: "center",
+                fontSize: 26, boxShadow: "0 8px 20px rgba(99,102,241,.3)",
+              }}>🏖️</div>
+              <div>
+                <h1 style={{ fontSize: 32, fontWeight: 900, color: "#1e1b4b", margin: 0, letterSpacing: "-.5px" }}>
+                  Leave Management
+                </h1>
+                <p style={{ color: "#7c3aed", fontSize: 14, margin: 0, fontWeight: 700 }}>
+                  Request time off or vacate your room
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Body */}
-        <div className="lv-body">
+          {/* ── Stats ── */}
+          <div
+            className="stats-grid"
+            style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}
+          >
+            {STATS.map((s, i) => (
+              <div
+                key={s.key}
+                className={`stat-card fade-in s${i + 1}`}
+                style={{ background: s.gradient, boxShadow: `0 10px 30px ${s.shadow}` }}
+              >
+                <div style={{ fontSize: 32, marginBottom: 6, position: "relative", zIndex: 1 }}>{s.icon}</div>
+                <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1, position: "relative", zIndex: 1 }}>
+                  {stats[s.key]}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase", marginTop: 6, opacity: .9, position: "relative", zIndex: 1 }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
 
-          {/* ── Form ── */}
-          <div className="lv-form-card">
-            <div className="lv-form-title">Apply for Leave</div>
-            <div className="lv-form-sub">Submit your leave request below</div>
+          {/* ── Top Grid ── */}
+          <div
+            className="top-grid"
+            style={{ display: "grid", gridTemplateColumns: "420px 1fr", gap: 18, marginBottom: 24, alignItems: "start" }}
+          >
+            {/* ── Form ── */}
+            <div className="card fade-in s3" style={{ borderRadius: 28, padding: 26 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#1e1b4b", marginBottom: 20 }}>
+                📝 Submit New Request
+              </div>
 
-            <form onSubmit={handleSubmit} noValidate>
-
-              {/* Reason */}
-              <div className="lv-field">
-                <label className="lv-field-label">
-                  Reason for Leave
-                  <span style={{ color: "#f43f5e", marginLeft: 3 }}>*</span>
-                </label>
-                <textarea
-                  className={`lv-field-textarea ${touched.reason && errors.reason ? "field-error" : ""}`}
-                  placeholder={`Describe your reason (min ${REASON_MIN} characters)`}
-                  value={form.reason}
-                  onChange={e => handleChange("reason", e.target.value)}
-                  onBlur={() => handleBlur("reason")}
-                  maxLength={REASON_MAX + 1}
-                  required
-                />
-                {/* Character count */}
-                <span style={{ fontSize: "0.65rem", color: form.reason.length > REASON_MAX ? "#f43f5e" : "#5a5650", textAlign: "right", position: "relative", zIndex: 1 }}>
-                  {form.reason.trim().length}/{REASON_MAX}
-                </span>
-                {touched.reason && errors.reason && (
-                  <span className="lv-field-error">⚠ {errors.reason}</span>
-                )}
+              {/* Tab toggles */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                <button
+                  className="tab-btn"
+                  onClick={() => setTab("temporary")}
+                  style={{
+                    background: tab === "temporary"
+                      ? "linear-gradient(135deg,#6366f1,#818cf8)"
+                      : "rgba(99,102,241,.08)",
+                    color: tab === "temporary" ? "#fff" : "#6366f1",
+                    boxShadow: tab === "temporary" ? "0 6px 18px rgba(99,102,241,.35)" : "none",
+                  }}
+                >
+                  ✈️ Temporary Leave
+                </button>
+                <button
+                  className="tab-btn"
+                  onClick={() => setTab("permanent")}
+                  style={{
+                    background: tab === "permanent"
+                      ? "linear-gradient(135deg,#ef4444,#f87171)"
+                      : "rgba(239,68,68,.08)",
+                    color: tab === "permanent" ? "#fff" : "#ef4444",
+                    boxShadow: tab === "permanent" ? "0 6px 18px rgba(239,68,68,.35)" : "none",
+                  }}
+                >
+                  🚪 Leave Room
+                </button>
               </div>
 
               {/* Dates */}
-              <div className="lv-date-row">
-                <div className="lv-field">
-                  <label className="lv-field-label">
-                    From Date <span style={{ color: "#f43f5e" }}>*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className={`lv-field-input ${touched.fromDate && errors.fromDate ? "field-error" : ""}`}
-                    value={form.fromDate}
-                    min={today}
-                    onChange={e => handleChange("fromDate", e.target.value)}
-                    onBlur={() => handleBlur("fromDate")}
-                    required
-                  />
-                  {touched.fromDate && errors.fromDate && (
-                    <span className="lv-field-error">⚠ {errors.fromDate}</span>
-                  )}
-                </div>
-
-                <div className="lv-field">
-                  <label className="lv-field-label">
-                    To Date <span style={{ color: "#f43f5e" }}>*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className={`lv-field-input ${touched.toDate && errors.toDate ? "field-error" : ""}`}
-                    value={form.toDate}
-                    min={form.fromDate || today}
-                    onChange={e => handleChange("toDate", e.target.value)}
-                    onBlur={() => handleBlur("toDate")}
-                    required
-                  />
-                  {touched.toDate && errors.toDate && (
-                    <span className="lv-field-error">⚠ {errors.toDate}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Duration preview — only show when valid */}
-              {previewDays && !errors.fromDate && !errors.toDate && (
-                <div className="lv-duration">
-                  <div className="lv-duration-dot" />
-                  <div className="lv-duration-text">
-                    {previewDays} day{previewDays > 1 ? "s" : ""} of leave requested
+              {tab === "temporary" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                  <div>
+                    <label className="field-label" style={{ color: "#6366f1" }}>📅 From Date</label>
+                    <input type="date" className="inp" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="field-label" style={{ color: "#6366f1" }}>📅 To Date</label>
+                    <input type="date" className="inp" value={toDate} onChange={(e) => setToDate(e.target.value)} />
                   </div>
                 </div>
               )}
 
-              <button type="submit" className="lv-submit-btn" disabled={submitting}>
-                {submitting ? "⏳ Submitting..." : "✈ Submit Leave Request"}
-              </button>
-            </form>
-          </div>
+              {/* Permanent warning */}
+              {tab === "permanent" && (
+                <div style={{
+                  background: "linear-gradient(135deg,#fee2e2,#fecaca)",
+                  border: "1.5px solid #f87171",
+                  borderRadius: 18, padding: 16, marginBottom: 16,
+                  fontSize: 13, fontWeight: 700, color: "#991b1b", lineHeight: 1.6,
+                }}>
+                  ⚠️ This permanently removes you from your current room allocation once approved by admin.
+                </div>
+              )}
 
-          {/* ── Right ── */}
-          <div className="lv-right">
-
-            {/* Filter bar */}
-            <div className="lv-filter-bar">
-              <span className="lv-filter-label">Filter</span>
-              <div className="lv-filter-chips">
-                {FILTERS.map(f => (
-                  <button key={f.value} type="button"
-                    className={`lv-filter-chip ${statusFilter === f.value ? "active" : ""}`}
-                    onClick={() => setStatusFilter(f.value)}>
-                    {f.label}
-                  </button>
-                ))}
+              {/* Reason */}
+              <div style={{ marginBottom: 18 }}>
+                <label className="field-label" style={{ color: "#7c3aed" }}>💬 Reason</label>
+                <textarea
+                  rows={5}
+                  className="inp"
+                  style={{ resize: "none" }}
+                  placeholder="Explain your reason..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
               </div>
-              <div className="lv-count-badge">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</div>
+
+              <button
+                className="submit-btn"
+                onClick={submitLeave}
+                disabled={loading}
+                style={{
+                  background: tab === "temporary"
+                    ? "linear-gradient(135deg,#6366f1,#818cf8)"
+                    : "linear-gradient(135deg,#ef4444,#f87171)",
+                  boxShadow: tab === "temporary"
+                    ? "0 8px 24px rgba(99,102,241,.4)"
+                    : "0 8px 24px rgba(239,68,68,.4)",
+                }}
+              >
+                {loading ? "⏳ Submitting..." : tab === "temporary" ? "✈️ Submit Temporary Leave" : "🚪 Request Permanent Leave"}
+              </button>
             </div>
 
-            {/* List */}
-            <div className="lv-list">
-
-              {loading && [1,2,3].map(i => (
-                <div key={i} style={{ height: 110, borderRadius: 18 }} className="lv-skeleton" />
-              ))}
-
-              {!loading && filtered.length === 0 && (
-                <div className="lv-empty">
-                  <div className="lv-empty-icon">✈</div>
-                  <div className="lv-empty-title">No leave requests found</div>
-                  <div className="lv-empty-sub">
-                    {statusFilter === "all"
-                      ? "Submit your first leave request using the form"
-                      : `No ${statusFilter} requests yet`}
+            {/* ── Guidelines ── */}
+            <div className="card fade-in s4" style={{ borderRadius: 28, padding: 26 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#1e1b4b", marginBottom: 18 }}>
+                💡 Quick Guidelines
+              </div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {[
+                  { icon: "📅", text: "Temporary leave requires both from and to dates.", color: "#6366f1", bg: "linear-gradient(135deg,#ede9fe,#ddd6fe)" },
+                  { icon: "✅", text: "Permanent room leave requires admin approval before taking effect.", color: "#059669", bg: "linear-gradient(135deg,#d1fae5,#a7f3d0)" },
+                  { icon: "✍️", text: "Provide a clear, detailed reason for faster approval.", color: "#d97706", bg: "linear-gradient(135deg,#fef3c7,#fde68a)" },
+                  { icon: "🔍", text: "Track all your request statuses in the history section below.", color: "#7c3aed", bg: "linear-gradient(135deg,#f3e8ff,#e9d5ff)" },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    display: "flex", gap: 14, alignItems: "flex-start",
+                    padding: "14px 16px", borderRadius: 18,
+                    background: item.bg,
+                    border: `1.5px solid rgba(255,255,255,.7)`,
+                  }}>
+                    <div style={{
+                      width: 38, height: 38, borderRadius: 12,
+                      background: "rgba(255,255,255,.7)",
+                      display: "grid", placeItems: "center",
+                      fontSize: 18, flexShrink: 0,
+                    }}>{item.icon}</div>
+                    <div style={{ fontSize: 14, color: item.color, lineHeight: 1.55, fontWeight: 700, paddingTop: 2 }}>
+                      {item.text}
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Mini calendar decoration */}
+              <div style={{
+                marginTop: 18, padding: "16px 20px", borderRadius: 20,
+                background: "linear-gradient(135deg,#bfdbfe,#ddd6fe)",
+                border: "1.5px solid rgba(255,255,255,.8)",
+                display: "flex", alignItems: "center", gap: 14,
+              }}>
+                <div style={{ fontSize: 36 }}>🏝️</div>
+                <div>
+                  <div style={{ fontWeight: 900, color: "#1e1b4b", fontSize: 15 }}>Plan your break!</div>
+                  <div style={{ fontWeight: 600, color: "#4c1d95", fontSize: 13 }}>Submit requests early for smooth approvals.</div>
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
 
-              {!loading && filtered.map((l, i) => {
-                const days = daysBetween(l.fromDate, l.toDate);
+          {/* ── History Header ── */}
+          <div className="card fade-in s5" style={{ borderRadius: 24, padding: 18, marginBottom: 16 }}>
+            <div style={{
+              display: "flex", gap: 12, flexWrap: "wrap",
+              justifyContent: "space-between", alignItems: "center",
+            }}>
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#1e1b4b", marginBottom: 4 }}>
+                  🗂️ My Request History
+                </div>
+                <div style={{ fontSize: 13, color: "#7c3aed", fontWeight: 700 }}>
+                  {filteredLeaves.length} request{filteredLeaves.length !== 1 ? "s" : ""} found
+                </div>
+              </div>
+
+              <div className="filter-row" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <input
+                  className="inp"
+                  placeholder="🔍 Search..."
+                  style={{ width: 220 }}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <select
+                  className="inp"
+                  style={{ width: 150 }}
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                >
+                  <option>All</option>
+                  <option>Pending</option>
+                  <option>Approved</option>
+                  <option>Rejected</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* ── History Cards ── */}
+          {historyLoading ? (
+            <div className="card" style={{ borderRadius: 24, padding: 50, textAlign: "center" }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+              <div style={{ color: "#7c3aed", fontWeight: 800, fontSize: 16 }}>Loading your requests...</div>
+            </div>
+          ) : filteredLeaves.length === 0 ? (
+            <div className="card" style={{ borderRadius: 24, padding: 50, textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+              <div style={{ color: "#7c3aed", fontWeight: 800, fontSize: 16 }}>No requests found</div>
+              <div style={{ color: "#a78bfa", fontWeight: 600, fontSize: 13, marginTop: 6 }}>Submit your first leave request above!</div>
+            </div>
+          ) : (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill,minmax(340px,1fr))",
+              gap: 16,
+            }}>
+              {filteredLeaves.map((item, idx) => {
+                const isPermanent = item.leaveType === "permanent";
+                const cardGradient = isPermanent
+                  ? "linear-gradient(145deg,#fff1f2,#fff5f5)"
+                  : "linear-gradient(145deg,#f0f4ff,#f5f3ff)";
+                const accentColor = isPermanent ? "#ef4444" : "#6366f1";
+                const accentLight = isPermanent ? "rgba(239,68,68,.1)" : "rgba(99,102,241,.1)";
+
                 return (
-                  <div key={l._id || i} className="lv-card">
-                    <div className={`lv-card-stripe ${stripeClass(l.status)}`} />
-                    <div className="lv-card-body">
-                      <div className="lv-card-top">
-                        <div className="lv-card-reason">{l.reason}</div>
-                        <span className={`lv-status-pill ${statusPill(l.status)}`}>
-                          <span className="pill-dot" />
-                          {l.status}
-                        </span>
-                      </div>
-
-                      <div className="lv-card-dates">
-                        <span className="lv-card-date-from">
-                          {l.fromDate ? fmtDate(l.fromDate) : "—"}
-                        </span>
-                        <span className="lv-card-date-arrow">→</span>
-                        <span className="lv-card-date-to">
-                          {l.toDate ? fmtDate(l.toDate) : "—"}
-                        </span>
-                      </div>
-
-                      <div className="lv-card-footer">
-                        <div className="lv-card-meta">
-                          🏠 Room {l.room?.roomNumber || "N/A"}
+                  <div
+                    key={item._id}
+                    className={`history-card card fade-in`}
+                    style={{
+                      animationDelay: `${idx * 0.05}s`,
+                      background: cardGradient,
+                      borderLeft: `4px solid ${accentColor}`,
+                    }}
+                  >
+                    {/* Card header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontSize: 20 }}>{isPermanent ? "🚪" : "✈️"}</span>
+                          <span style={{ fontSize: 16, fontWeight: 900, color: "#1e1b4b" }}>
+                            {isPermanent ? "Permanent Room Leave" : "Temporary Leave"}
+                          </span>
                         </div>
-                        <div className="lv-card-meta">
-                          🕐 {l.createdAt ? fmtDate(l.createdAt) : "—"}
+                        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>
+                          Requested {formatDate(item.createdAt)}
                         </div>
-                        {days && (
-                          <div className="lv-card-days">
-                            {days} day{days > 1 ? "s" : ""}
-                          </div>
-                        )}
+                      </div>
+                      <StatusBadge status={item.status} />
+                    </div>
+
+                    {/* Reason box */}
+                    <div style={{
+                      background: "rgba(255,255,255,.8)",
+                      borderRadius: 16, padding: 14,
+                      border: `1.5px solid ${accentLight}`,
+                      marginBottom: 12,
+                    }}>
+                      <div style={{
+                        fontSize: 10, fontWeight: 900, color: accentColor,
+                        textTransform: "uppercase", letterSpacing: ".7px", marginBottom: 6,
+                      }}>
+                        💬 Reason
+                      </div>
+                      <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.6, fontWeight: 600 }}>
+                        {item.reason}
                       </div>
                     </div>
+
+                    {/* Dates or permanent notice */}
+                    {!isPermanent ? (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                        {[
+                          ["📅 From", formatDate(item.fromDate), "#6366f1"],
+                          ["📅 To", formatDate(item.toDate), "#8b5cf6"],
+                          ["⏱️ Duration", daysBetween(item.fromDate, item.toDate), "#a78bfa"],
+                        ].map(([label, val, col]) => (
+                          <div key={label} style={{
+                            background: "rgba(255,255,255,.8)",
+                            borderRadius: 14, padding: 12,
+                            border: "1.5px solid rgba(99,102,241,.1)",
+                            textAlign: "center",
+                          }}>
+                            <div style={{ fontSize: 10, fontWeight: 900, color: col, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 5 }}>
+                              {label}
+                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 800, color: "#1e1b4b" }}>{val}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{
+                        padding: 14, borderRadius: 14,
+                        background: "linear-gradient(135deg,#fee2e2,#fecaca)",
+                        border: "1.5px solid #fca5a5",
+                        color: "#991b1b", fontWeight: 700, fontSize: 13,
+                        display: "flex", alignItems: "center", gap: 8,
+                      }}>
+                        <span style={{ fontSize: 18 }}>⚠️</span>
+                        If approved, you will be removed from your assigned room.
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Layout>
   );
 }
-
-export default Leave;
