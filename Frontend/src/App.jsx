@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+<<<<<<< HEAD
 // Public Pages
 import Home from "./pages/Home";
 import Register from "./pages/Register";
@@ -7,6 +8,13 @@ import Login from "./pages/Login";
 import VerifyOtp from "./pages/VerifyOtp.jsx";
 
 // Student Pages
+=======
+// Pages
+import Home from "./pages/Home";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
 import Rooms from "./pages/student/Rooms.jsx";
 import Requests from "./pages/student/Requests.jsx";
 import StudentDashboard from "./pages/student/StudentDashboard.jsx";
@@ -23,7 +31,10 @@ import RoomChangeRequests from "./pages/student/RoomChangeRequests.jsx";
 import WardenSupport from "./pages/student/WardenSupport.jsx";
 import Payments from "./pages/student/Payments.jsx";
 
+<<<<<<< HEAD
 // Admin Pages
+=======
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
 import ManageRooms from "./pages/admin/ManageRooms.jsx";
@@ -38,8 +49,13 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import ManageRoomChangeRequests from "./pages/admin/ManageRoomChangeRequests.jsx";
 import WardenInbox from "./pages/admin/WardenInbox.jsx";
 import ManagePayments from "./pages/admin/ManagePayments.jsx";
+<<<<<<< HEAD
 
 // Routes
+=======
+import VerifyOtp from "./pages/VerifyOtp.jsx";
+
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
 // Components
@@ -49,13 +65,21 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+<<<<<<< HEAD
         {/* PUBLIC ROUTES */}
+=======
+        {/* PUBLIC */}
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
 
+<<<<<<< HEAD
         {/* STUDENT ROUTES */}
+=======
+        {/* STUDENT */}
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
         <Route
           path="/dashboard"
           element={
@@ -138,6 +162,7 @@ function App() {
         />
 
         <Route
+<<<<<<< HEAD
           path="/notices"
           element={
             <ProtectedRoute role="student">
@@ -192,6 +217,63 @@ function App() {
         />
 
         {/* ADMIN ROUTES */}
+=======
+  path="/notices"
+  element={
+    <ProtectedRoute role="student">
+      <Notices />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/roommate-requests"
+  element={
+    <ProtectedRoute role="student">
+      <RoommateRequests />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/my-room"
+  element={
+    <ProtectedRoute role="student">
+      <MyRoom />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/room-change-requests"
+  element={
+    <ProtectedRoute role="student">
+      <RoomChangeRequests />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/warden-support"
+  element={
+    <ProtectedRoute role="student">
+      <WardenSupport />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/payments"
+  element={
+    <ProtectedRoute role="student">
+      <Payments />
+    </ProtectedRoute>
+  }
+/>
+
+
+        {/* ADMIN */}
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
         <Route
           path="/admin/dashboard"
           element={
@@ -265,6 +347,7 @@ function App() {
         />
 
         <Route
+<<<<<<< HEAD
           path="/admin/notices"
           element={
             <ProtectedRoute role="admin">
@@ -317,6 +400,60 @@ function App() {
             </ProtectedRoute>
           }
         />
+=======
+  path="/admin/notices"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageNotices />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/roommate-pairs"
+  element={
+    <ProtectedRoute role="admin">
+      <RoommatePairs />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/analytics"
+  element={
+    <ProtectedRoute role="admin">
+      <AdminAnalytics />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/room-change-requests"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageRoomChangeRequests />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/warden-inbox"
+  element={
+    <ProtectedRoute role="admin">
+      <WardenInbox />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/payments"
+  element={
+    <ProtectedRoute role="admin">
+      <ManagePayments />
+    </ProtectedRoute>
+  }
+/>
+>>>>>>> 9445741929e4efd803e75e6f14636b5df0a67df8
       </Routes>
 
       <Footer />
