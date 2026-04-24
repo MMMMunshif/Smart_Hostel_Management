@@ -14,6 +14,12 @@ const leaveSchema = new mongoose.Schema(
       default: null,
     },
 
+    leaveType: {
+      type: String,
+      enum: ["temporary", "permanent"],
+      default: "temporary",
+    },
+
     reason: {
       type: String,
       required: true,
@@ -22,18 +28,23 @@ const leaveSchema = new mongoose.Schema(
 
     fromDate: {
       type: Date,
-      required: true,
+      default: null,
     },
 
     toDate: {
       type: Date,
-      required: true,
+      default: null,
     },
 
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
+    },
+
+    adminRemark: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }
