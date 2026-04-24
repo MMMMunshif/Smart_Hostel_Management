@@ -282,10 +282,9 @@ const districts = [
   "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla",
   "Monaragala", "Ratnapura", "Kegalle"
 ];
-
 function AddRoom() {
   const navigate = useNavigate();
-  const showToast = useToast();
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     roomNumber: "",
@@ -412,7 +411,7 @@ function AddRoom() {
         },
       });
 
-       showToast("Room added successfully.", "success");
+      showToast("Room added successfully ✅", "success");
       setTimeout(() => {
         navigate("/admin/rooms");
       }, 900);
