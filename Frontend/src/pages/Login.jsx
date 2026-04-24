@@ -14,7 +14,6 @@ const css = `
     color: #1a1d23;
   }
 
-  /* ── Left panel ── */
   .auth-left {
     position: relative;
     background: linear-gradient(145deg, #0d1117 0%, #0a1628 60%, #0d2a2a 100%);
@@ -44,7 +43,6 @@ const css = `
     pointer-events: none;
   }
 
-  /* floating grid dots */
   .auth-dots {
     position: absolute;
     inset: 0;
@@ -97,7 +95,6 @@ const css = `
     max-width: 340px;
   }
 
-  /* stat pills */
   .auth-stats {
     display: flex;
     gap: 12px;
@@ -134,7 +131,6 @@ const css = `
     z-index: 1;
   }
 
-  /* ── Right panel ── */
   .auth-right {
     display: flex;
     align-items: center;
@@ -174,7 +170,6 @@ const css = `
   }
   .auth-card-sub a:hover { opacity: .75; }
 
-  /* Role toggle */
   .role-toggle {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -201,7 +196,6 @@ const css = `
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
 
-  /* Input group */
   .input-group {
     display: flex;
     flex-direction: column;
@@ -248,7 +242,6 @@ const css = `
     user-select: none;
   }
 
-  /* Forgot */
   .auth-forgot {
     text-align: right;
     margin-top: -8px;
@@ -263,7 +256,6 @@ const css = `
   }
   .auth-forgot a:hover { opacity: .75; }
 
-  /* Submit button */
   .auth-btn {
     width: 100%;
     padding: 14px;
@@ -283,7 +275,6 @@ const css = `
   .auth-btn:active { transform: scale(.98); }
   .auth-btn:disabled { opacity: .6; cursor: not-allowed; }
 
-  /* Divider */
   .auth-divider {
     display: flex;
     align-items: center;
@@ -299,7 +290,6 @@ const css = `
     background: #eef0f4;
   }
 
-  /* Social */
   .auth-social {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -320,7 +310,6 @@ const css = `
   }
   .social-btn:hover { border-color: #00d4c8; }
 
-  /* Error */
   .auth-error {
     background: #fff0f0;
     border: 1px solid #fdd;
@@ -343,18 +332,18 @@ const css = `
 
 function Login() {
   const navigate = useNavigate();
-  const [role, setRole]         = useState("student");
+  const [role, setRole] = useState("student");
   const [showPass, setShowPass] = useState(false);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);                // ✅ NEW
-  const [form, setForm]         = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
 
-  // ✅ UPDATED — calls real backend, checks MongoDB
   const handleLogin = async () => {
     if (!form.email || !form.password) {
       setError("Please fill in all fields.");
       return;
     }
+
     setError("");
     setLoading(true);
 
@@ -363,29 +352,37 @@ function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email:    form.email,
+          email: form.email,
           password: form.password,
-          role:     role,
+          role,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // Backend returned 401 / 403 / 400 — show the error message
-        setError(data.error || "Login failed. Please try again.");
+        if (data.needsVerification) {
+          navigate("/verify-otp", {
+            state: { email: data.email || form.email },
+          });
+          return;
+        }
+
+        setError(data.message || data.error || "Login failed. Please try again.");
         return;
       }
 
-      // ✅ Success — save token + user info, then navigate
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role);
-      localStorage.setItem("name", data.user.name);
-      localStorage.setItem("userId", data.user._id);
+      const payload = data.data || {};
+      const user = payload.user;
+      const token = payload.token;
 
-      if (data.user.role === "admin") navigate("/admin/dashboard");
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", user.role);
+      localStorage.setItem("name", user.name);
+      localStorage.setItem("userId", user._id);
+
+      if (user.role === "admin") navigate("/admin/dashboard");
       else navigate("/dashboard");
-
     } catch (err) {
       setError("Network error. Could not reach server.");
     } finally {
@@ -397,8 +394,6 @@ function Login() {
     <>
       <style>{css}</style>
       <div className="auth-root">
-
-        {/* ── Left visual panel ── */}
         <div className="auth-left">
           <div className="auth-dots" />
 
@@ -409,7 +404,11 @@ function Login() {
 
           <div className="auth-left-body">
             <div className="auth-left-tagline">
-              Find your perfect<br /><span>roommate</span> &<br />hostel room.
+              Find your perfect
+              <br />
+              <span>roommate</span> &
+              <br />
+              hostel room.
             </div>
             <p className="auth-left-sub">
               AI-powered matching helps you connect with compatible roommates
@@ -435,19 +434,15 @@ function Login() {
           <div className="auth-left-footer">© 2026 NestMate. All rights reserved.</div>
         </div>
 
-        {/* ── Right form panel ── */}
         <div className="auth-right">
           <div className="auth-card">
-
             <div className="auth-card-header">
               <div className="auth-card-title">Welcome back 👋</div>
               <div className="auth-card-sub">
-                Don't have an account?{" "}
-                <a onClick={() => navigate("/register")}>Sign up free</a>
+                Don't have an account? <a onClick={() => navigate("/register")}>Sign up free</a>
               </div>
             </div>
 
-            {/* Role toggle */}
             <div className="role-toggle">
               <button
                 className={`role-btn ${role === "student" ? "active" : ""}`}
@@ -463,12 +458,8 @@ function Login() {
               </button>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="auth-error">⚠ {error}</div>
-            )}
+            {error && <div className="auth-error">⚠ {error}</div>}
 
-            {/* Inputs */}
             <div className="input-group">
               <div className="input-wrap">
                 <label className="input-label">Email address</label>
@@ -477,7 +468,7 @@ function Login() {
                     className="input-field"
                     placeholder={role === "admin" ? "admin@nestmate.com" : "you@university.edu"}
                     value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
               </div>
@@ -491,8 +482,8 @@ function Login() {
                     placeholder="Enter your password"
                     style={{ paddingRight: "42px" }}
                     value={form.password}
-                    onChange={e => setForm({ ...form, password: e.target.value })}
-                    onKeyDown={e => e.key === "Enter" && handleLogin()}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                   />
                   <span className="input-icon" onClick={() => setShowPass(!showPass)}>
                     {showPass ? "🙈" : "👁"}
@@ -507,7 +498,6 @@ function Login() {
 
             <br />
 
-            {/* ✅ Disabled + shows loading text while waiting for API */}
             <button className="auth-btn" onClick={handleLogin} disabled={loading}>
               {loading ? "Signing in…" : "Sign in to NestMate →"}
             </button>
@@ -522,10 +512,8 @@ function Login() {
                 <span>🔷</span> Microsoft
               </button>
             </div>
-
           </div>
         </div>
-
       </div>
     </>
   );

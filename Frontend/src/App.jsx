@@ -16,6 +16,10 @@ import Leave from "./pages/student/Leave.jsx";
 import Visitors from "./pages/student/Visitors.jsx";
 import Notices from "./pages/student/Notices.jsx";
 import RoommateRequests from "./pages/student/RoommateRequests.jsx";
+import MyRoom from "./pages/student/MyRoom.jsx";
+import RoomChangeRequests from "./pages/student/RoomChangeRequests.jsx";
+import WardenSupport from "./pages/student/WardenSupport.jsx";
+import Payments from "./pages/student/Payments.jsx";
 
 import AdminDashboard from "./pages/admin/Admindashboard.jsx";
 import AddRoom from "./pages/admin/AddRoom.jsx";
@@ -27,6 +31,11 @@ import ManageLeave from "./pages/admin/ManageLeave.jsx";
 import ManageNotices from "./pages/admin/ManageNotices.jsx";
 import ManageVisitors from "./pages/admin/ManageVisitors.jsx";
 import RoommatePairs from "./pages/admin/RoommatePairs.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
+import ManageRoomChangeRequests from "./pages/admin/ManageRoomChangeRequests.jsx";
+import WardenInbox from "./pages/admin/WardenInbox.jsx";
+import ManagePayments from "./pages/admin/ManagePayments.jsx";
+import VerifyOtp from "./pages/VerifyOtp.jsx";
 
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
@@ -41,6 +50,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
 
         {/* STUDENT */}
         <Route
@@ -142,6 +152,43 @@ function App() {
   }
 />
 
+<Route
+  path="/my-room"
+  element={
+    <ProtectedRoute role="student">
+      <MyRoom />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/room-change-requests"
+  element={
+    <ProtectedRoute role="student">
+      <RoomChangeRequests />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/warden-support"
+  element={
+    <ProtectedRoute role="student">
+      <WardenSupport />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/payments"
+  element={
+    <ProtectedRoute role="student">
+      <Payments />
+    </ProtectedRoute>
+  }
+/>
+
+
         {/* ADMIN */}
         <Route
           path="/admin/dashboard"
@@ -229,6 +276,42 @@ function App() {
   element={
     <ProtectedRoute role="admin">
       <RoommatePairs />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/analytics"
+  element={
+    <ProtectedRoute role="admin">
+      <AdminAnalytics />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/room-change-requests"
+  element={
+    <ProtectedRoute role="admin">
+      <ManageRoomChangeRequests />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/warden-inbox"
+  element={
+    <ProtectedRoute role="admin">
+      <WardenInbox />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/payments"
+  element={
+    <ProtectedRoute role="admin">
+      <ManagePayments />
     </ProtectedRoute>
   }
 />
