@@ -51,6 +51,14 @@ userSchema.methods.matchPassword = async function (entered) {
   return bcrypt.compare(entered, this.password);
 };
 
+// ── Instance method: check email verification status ────────
+userSchema.methods.isEmailVerified = function () {
+  // Returns true if:
+  // 1. User is old (isVerified is undefined) - backward compatibility
+  // 2. User is new and has completed verification (isVerified === true)
+  return this.isVerified === undefined || this.isVerified === true;
+};
+
 // ── Remove password from any JSON response ───────────────────
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
