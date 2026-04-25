@@ -1,6 +1,11 @@
 const jwt  = require("jsonwebtoken");
 const User = require("../models/User");
 
+// Security audit log
+const securityLog = (action, userId, details) => {
+  console.log(`[SECURITY AUDIT] ${new Date().toISOString()} | Action: ${action} | User: ${userId} | Details: ${details}`);
+};
+
 // ─────────────────────────────────────────────────
 // Protect — verify JWT and attach user to request
 // ─────────────────────────────────────────────────
@@ -16,6 +21,7 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
+      securityLog("NO_TOKEN", "UNKNOWN", `Missing token for endpoint: ${req.path}`);
       return res.status(401).json({
         success: false,
         message: "Not authorised. No token provided.",
@@ -26,6 +32,7 @@ const protect = async (req, res, next) => {
     const user    = await User.findById(decoded.id);
 
     if (!user || !user.isActive) {
+      securityLog("INACTIVE_USER", decoded.id, "User is inactive or deleted");
       return res.status(401).json({
         success: false,
         message: "Not authorised. User no longer exists or is inactive.",
@@ -33,9 +40,11 @@ const protect = async (req, res, next) => {
     }
 
     req.user = user;
+    securityLog("TOKEN_VERIFIED", user._id, `Access to ${req.method} ${req.path}`);
     next();
   } catch (err) {
     console.error("protect middleware error:", err.message);
+    securityLog("INVALID_TOKEN", "UNKNOWN", err.message);
     return res.status(401).json({
       success: false,
       message: "Not authorised. Invalid or expired token.",
