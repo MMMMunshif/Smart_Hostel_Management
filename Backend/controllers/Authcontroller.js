@@ -2,8 +2,46 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const sendEmail = require("../utils/sendEmail");
 
+// In-memory login attempt tracking (for production, use Redis or database)
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+
 // helpers
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Check if account is locked due to failed attempts
+const isAccountLocked = (email) => {
+  const attempts = loginAttempts.get(email);
+  if (!attempts) return false;
+  
+  if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+    const lockedTime = attempts.lastAttempt;
+    const now = Date.now();
+    
+    if (now - lockedTime < LOCKOUT_DURATION) {
+      return true;
+    } else {
+      // Reset after lockout duration
+      loginAttempts.delete(email);
+      return false;
+    }
+  }
+  return false;
+};
+
+// Record failed login attempt
+const recordFailedAttempt = (email) => {
+  const current = loginAttempts.get(email) || { count: 0, lastAttempt: Date.now() };
+  current.count += 1;
+  current.lastAttempt = Date.now();
+  loginAttempts.set(email, current);
+};
+
+// Reset login attempts on successful login
+const resetLoginAttempts = (email) => {
+  loginAttempts.delete(email);
+};
 
 // Password strength validation
 const validatePasswordStrength = (password) => {
@@ -283,8 +321,18 @@ const loginUser = async (req, res) => {
       });
     }
 
+    // Check if account is locked due to too many failed attempts
+    if (isAccountLocked(email)) {
+      console.warn(`[SECURITY] Login attempt on locked account: ${email}`);
+      return res.status(429).json({
+        success: false,
+        message: "Account temporarily locked due to too many failed login attempts. Try again later.",
+      });
+    }
+
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
+      recordFailedAttempt(email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password.",
@@ -292,6 +340,7 @@ const loginUser = async (req, res) => {
     }
 
     if (role && user.role !== role) {
+      recordFailedAttempt(email);
       return res.status(403).json({
         success: false,
         message: `This account is registered as '${user.role}', not '${role}'.`,
@@ -300,6 +349,7 @@ const loginUser = async (req, res) => {
 
     // keep your existing isActive rule if your model has it
     if (typeof user.isActive !== "undefined" && !user.isActive) {
+      recordFailedAttempt(email);
       return res.status(403).json({
         success: false,
         message: "Your account has been deactivated. Contact support.",
@@ -308,9 +358,14 @@ const loginUser = async (req, res) => {
 
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      recordFailedAttempt(email);
+      const attempts = loginAttempts.get(email);
+      const remainingAttempts = MAX_LOGIN_ATTEMPTS - attempts.count;
+      console.warn(`[SECURITY] Failed login attempt for ${email}. Attempts: ${attempts.count}/${MAX_LOGIN_ATTEMPTS}`);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password.",
+        attemptWarning: remainingAttempts > 0 ? `${remainingAttempts} attempts remaining` : "Account will be locked",
       });
     }
 
@@ -318,6 +373,7 @@ const loginUser = async (req, res) => {
     // only newly registered users with isVerified === false are blocked
     // old users with undefined isVerified can still log in
     if (user.isVerified === false) {
+      recordFailedAttempt(email);
       return res.status(403).json({
         success: false,
         message: "Email not verified. Please verify OTP first.",
@@ -325,6 +381,10 @@ const loginUser = async (req, res) => {
         email: user.email,
       });
     }
+
+    // Reset login attempts on successful login
+    resetLoginAttempts(email);
+    console.log(`[SECURITY] Successful login for user: ${email}`);
 
     return res.status(200).json({
       success: true,
