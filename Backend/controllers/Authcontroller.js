@@ -361,10 +361,52 @@ const getMe = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────
+// @desc    Refresh authentication token
+// @route   POST /api/users/refresh-token
+// @access  Private
+// ─────────────────────────────────────────────────
+const refreshToken = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been deactivated.",
+      });
+    }
+
+    const newToken = generateToken(user._id, user.role);
+
+    return res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully.",
+      data: {
+        token: newToken,
+      },
+    });
+  } catch (err) {
+    console.error("refreshToken error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   verifyOtp,
   resendOtp,
+  refreshToken,
 };
