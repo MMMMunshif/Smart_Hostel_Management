@@ -2,8 +2,35 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const sendEmail = require("../utils/sendEmail");
 
-// helper
+// helpers
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Password strength validation
+const validatePasswordStrength = (password) => {
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*]/.test(password);
+
+  if (password.length < minLength) {
+    return { valid: false, message: "Password must be at least 8 characters long." };
+  }
+  if (!hasUpperCase) {
+    return { valid: false, message: "Password must contain at least one uppercase letter." };
+  }
+  if (!hasLowerCase) {
+    return { valid: false, message: "Password must contain at least one lowercase letter." };
+  }
+  if (!hasNumbers) {
+    return { valid: false, message: "Password must contain at least one number." };
+  }
+  if (!hasSpecialChar) {
+    return { valid: false, message: "Password must contain at least one special character (!@#$%^&*)." };
+  }
+
+  return { valid: true, message: "Password is strong." };
+};
 
 // ─────────────────────────────────────────────────
 // @desc    Register a new user with OTP verification
@@ -25,6 +52,15 @@ const registerUser = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Role must be either 'student' or 'admin'.",
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.message,
       });
     }
 
