@@ -117,18 +117,46 @@ exports.updateNotice = async (req, res) => {
     const notice = await Notice.findById(req.params.id);
 
     if (!notice) {
+      adminAuditLog("NOTICE_UPDATE_FAILED", req.user._id, req.user.name, `Notice not found: ${req.params.id}`);
       return res.status(404).json({
         message: "Notice not found",
       });
     }
 
-    if (title !== undefined) notice.title = title;
-    if (message !== undefined) notice.message = message;
-    if (category !== undefined) notice.category = category;
-    if (audience !== undefined) notice.audience = audience;
-    if (isActive !== undefined) notice.isActive = isActive;
+    // Track what was changed for audit log
+    const changes = [];
+    if (title !== undefined && notice.title !== title) {
+      changes.push(`Title: "${notice.title}" → "${title}"`);
+      notice.title = title;
+    }
+    if (message !== undefined && notice.message !== message) {
+      changes.push(`Message updated`);
+      notice.message = message;
+    }
+    if (category !== undefined && notice.category !== category) {
+      changes.push(`Category: "${notice.category}" → "${category}"`);
+      notice.category = category;
+    }
+    if (audience !== undefined && notice.audience !== audience) {
+      changes.push(`Audience: "${notice.audience}" → "${audience}"`);
+      notice.audience = audience;
+    }
+    if (isActive !== undefined && notice.isActive !== isActive) {
+      changes.push(`Status: ${notice.isActive ? "Active" : "Inactive"} → ${isActive ? "Active" : "Inactive"}`);
+      notice.isActive = isActive;
+    }
 
     await notice.save();
+
+    // Log the update
+    if (changes.length > 0) {
+      adminAuditLog(
+        "NOTICE_UPDATED",
+        req.user._id,
+        req.user.name,
+        `Notice ID: ${req.params.id} | Changes: ${changes.join(" | ")}`
+      );
+    }
 
     const updatedNotice = await Notice.findById(notice._id).populate(
       "postedBy",
@@ -137,6 +165,7 @@ exports.updateNotice = async (req, res) => {
 
     res.json(updatedNotice);
   } catch (err) {
+    adminAuditLog("NOTICE_UPDATE_ERROR", req.user._id, req.user.name, err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -147,6 +176,7 @@ exports.deleteNotice = async (req, res) => {
     const notice = await Notice.findById(req.params.id);
 
     if (!notice) {
+      adminAuditLog("NOTICE_DELETE_FAILED", req.user._id, req.user.name, `Notice not found: ${req.params.id}`);
       return res.status(404).json({
         message: "Notice not found",
       });
@@ -154,8 +184,16 @@ exports.deleteNotice = async (req, res) => {
 
     await notice.deleteOne();
 
+    adminAuditLog(
+      "NOTICE_DELETED",
+      req.user._id,
+      req.user.name,
+      `Notice ID: ${req.params.id} | Title: "${notice.title}" | Audience: ${notice.audience}`
+    );
+
     res.json({ message: "Notice deleted successfully" });
   } catch (err) {
+    adminAuditLog("NOTICE_DELETE_ERROR", req.user._id, req.user.name, err.message);
     res.status(500).json({ error: err.message });
   }
 };
