@@ -2,12 +2,19 @@ const Notice = require("../models/Notice");
 const User = require("../models/User");
 const { createNotification } = require("./notificationController");
 
+// Admin audit log for notices
+const adminAuditLog = (action, adminId, adminName, details) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[ADMIN AUDIT] ${timestamp} | Action: ${action} | Admin: ${adminName} (${adminId}) | Details: ${details}`);
+};
+
 // ADMIN: Create notice
 exports.createNotice = async (req, res) => {
   try {
     const { title, message, category, audience } = req.body;
 
     if (!title || !message) {
+      adminAuditLog("NOTICE_CREATE_FAILED", req.user._id, req.user.name, "Missing required fields");
       return res.status(400).json({
         message: "Title and message are required",
       });
@@ -20,6 +27,14 @@ exports.createNotice = async (req, res) => {
       audience: audience || "students",
       postedBy: req.user._id,
     });
+
+    // Log successful notice creation
+    adminAuditLog(
+      "NOTICE_CREATED",
+      req.user._id,
+      req.user.name,
+      `Title: "${title}" | Audience: ${audience || "students"} | Category: ${category || "General"}`
+    );
 
     // create notifications for students when audience includes them
     if (notice.audience === "students" || notice.audience === "all") {
@@ -39,6 +54,13 @@ exports.createNotice = async (req, res) => {
           })
         )
       );
+
+      adminAuditLog(
+        "NOTIFICATIONS_SENT",
+        req.user._id,
+        req.user.name,
+        `Sent to ${students.length} students for notice: "${title}"`
+      );
     }
 
     const populatedNotice = await Notice.findById(notice._id).populate(
@@ -48,6 +70,7 @@ exports.createNotice = async (req, res) => {
 
     res.status(201).json(populatedNotice);
   } catch (err) {
+    adminAuditLog("NOTICE_CREATE_ERROR", req.user._id, req.user.name, err.message);
     res.status(500).json({ error: err.message });
   }
 };
